@@ -14,6 +14,7 @@ import {
 	UndefinedObject,
 	match,
 	NonEmptyObject,
+	Enum
 } from "./index.js"
 
 describe("nano-types utilities", () => {
@@ -124,7 +125,7 @@ describe("nano-types utilities", () => {
 		it("should return Boolean for boolean input", () => {
 			assert.strictEqual(functionOf(false), Boolean)
 		})
-		it.skip("should return Boolean for Boolean", () => {
+		it.todo("should return Boolean for Boolean", () => {
 			assert.strictEqual(functionOf(Boolean), Boolean)
 		})
 		it("should return Number for numeric input", () => {
@@ -188,10 +189,12 @@ describe("nano-types utilities", () => {
 
 		it("throws TypeError if number of arguments is zero", () => {
 			assert.throws(() => equal(), TypeError)
-			assert.throws(() => equal(1), { message: [
-				"Only paird arguments are allowed",
-				"equal(x, true, y, false, z, 0) => x === true && y === false && z === 0"
-			].join("\n") })
+			assert.throws(() => equal(1), {
+				message: [
+					"Only paird arguments are allowed",
+					"equal(x, true, y, false, z, 0) => x === true && y === false && z === 0"
+				].join("\n")
+			})
 		})
 
 		it("throws TypeError if number of arguments is odd", () => {
@@ -274,7 +277,7 @@ describe("nano-types utilities", () => {
 			const a = to(Object)(data)
 			assert.strictEqual(JSON.stringify(a), '{"x":9}')
 		})
-		it.skip("should include undefined values for UndefinedObject", () => {
+		it.todo("should include undefined values for UndefinedObject", () => {
 			const data = { x: 9, y: undefined }
 			const b = to(UndefinedObject)(data)
 			assert.strictEqual(JSON.stringify(b), '{"x":9,"y":undefined}')
@@ -343,51 +346,142 @@ describe("nano-types utilities", () => {
 			assert.deepStrictEqual(result, { x: 9 })
 		})
 	})
-})
 
-describe("match", () => {
-	it("should match strings", () => {
-		const fn = match("hello")
-		assert.ok(fn("hello"))
-		assert.ok(!fn("world"))
+	describe("match", () => {
+		it("should match strings", () => {
+			const fn = match("hello")
+			assert.ok(fn("hello"))
+			assert.ok(!fn("world"))
+		})
+		it("should match strings case-insensitively", () => {
+			const fn = match("hello", { caseInsensitive: true })
+			assert.ok(fn("hello"))
+			assert.ok(!fn("world"))
+			assert.ok(fn("HELLO"))
+		})
+		it("should match regex", () => {
+			const fn = match(/^hello$/)
+			assert.ok(fn("hello"))
+			assert.ok(!fn("world"))
+		})
+		it("should match regex case-insensitively", () => {
+			const fn = match(/^hello$/, { caseInsensitive: true })
+			assert.ok(fn("hello"))
+			assert.ok(!fn("world"))
+			assert.ok(fn("HELLO"))
+		})
+		it("should match multiple values", () => {
+			const fn = match("hello")
+			assert.ok(fn("hello", "world"))
+			assert.ok(!fn("HELLO", "WORLD"))
+		})
+		it("should match multiple values with every", () => {
+			const fn = match("hello", { method: "every", caseInsensitive: true })
+			assert.ok(!fn("hello", "world"))
+			assert.ok(!fn("HELLO", "WORLD"))
+			assert.ok(fn("hello", "Hello"))
+		})
+		it("should match multiple values case-insensitively", () => {
+			const fn = match("l", { caseInsensitive: true, stringFn: "includes" })
+			assert.ok(fn("hello", "world"))
+			assert.ok(fn("HELLO", "WORLD"))
+		})
+		it("should match multiple values case-insensitively", () => {
+			const fn = match("he", { caseInsensitive: true, method: "every", stringFn: "startsWith" })
+			assert.ok(fn("hello", "hemp"))
+			assert.ok(fn("hello", "HEmp"))
+			assert.ok(!fn("HELLO", "WORLD"))
+		})
 	})
-	it("should match strings case-insensitively", () => {
-		const fn = match("hello", { caseInsensitive: true })
-		assert.ok(fn("hello"))
-		assert.ok(!fn("world"))
-		assert.ok(fn("HELLO"))
-	})
-	it("should match regex", () => {
-		const fn = match(/^hello$/)
-		assert.ok(fn("hello"))
-		assert.ok(!fn("world"))
-	})
-	it("should match regex case-insensitively", () => {
-		const fn = match(/^hello$/, { caseInsensitive: true })
-		assert.ok(fn("hello"))
-		assert.ok(!fn("world"))
-		assert.ok(fn("HELLO"))
-	})
-	it("should match multiple values", () => {
-		const fn = match("hello")
-		assert.ok(fn("hello", "world"))
-		assert.ok(!fn("HELLO", "WORLD"))
-	})
-	it("should match multiple values with every", () => {
-		const fn = match("hello", { method: "every", caseInsensitive: true })
-		assert.ok(!fn("hello", "world"))
-		assert.ok(!fn("HELLO", "WORLD"))
-		assert.ok(fn("hello", "Hello"))
-	})
-	it("should match multiple values case-insensitively", () => {
-		const fn = match("l", { caseInsensitive: true, stringFn: "includes" })
-		assert.ok(fn("hello", "world"))
-		assert.ok(fn("HELLO", "WORLD"))
-	})
-	it("should match multiple values case-insensitively", () => {
-		const fn = match("he", { caseInsensitive: true, method: "every", stringFn: "startsWith" })
-		assert.ok(fn("hello", "hemp"))
-		assert.ok(fn("hello", "HEmp"))
-		assert.ok(!fn("HELLO", "WORLD"))
+
+	describe("Enum", () => {
+		it("should validate single values from allowed list", () => {
+			const validator = Enum("red", "green", "blue")
+			assert.strictEqual(validator("red"), "red")
+			assert.strictEqual(validator("green"), "green")
+			assert.strictEqual(validator("blue"), "blue")
+		})
+
+		it("should validate array values from allowed list", () => {
+			const validator = Enum(1, 2, 3)
+			assert.deepStrictEqual(validator([1, 2]), [1, 2])
+			assert.deepStrictEqual(validator([3, 1, 2]), [3, 1, 2])
+		})
+
+		it("should throw error for invalid single value", () => {
+			const validator = Enum("red", "green", "blue")
+			assert.throws(() => validator("yellow"), {
+				name: "TypeError",
+				message: [
+					"Enumeration must have one value of",
+					"- red",
+					"- green",
+					"- blue",
+					"but provided",
+					"yellow"
+				].join("\n")
+			})
+		})
+
+		it("should throw error for invalid array value", () => {
+			const validator = Enum(1, 2, 3)
+			assert.throws(() => validator([1, 4]), {
+				name: "TypeError",
+				message: [
+					"Enumeration must have one value of",
+					"- 1",
+					"- 2",
+					"- 3",
+					"but provided",
+					4
+				].join("\n")
+			})
+		})
+
+		it("should validate with custom functions", () => {
+			const isString = (value) => typeof value === "string"
+			const validator = Enum("red", "green", isString)
+			assert.strictEqual(validator("red"), "red")
+			assert.strictEqual(validator("orange"), "orange")
+			assert.strictEqual(validator("purple"), "purple")
+		})
+
+		it("should throw error when value doesn't match any enum or function", () => {
+			const isString = (value) => typeof value === "string"
+			const validator = Enum("red", "green", isString)
+			assert.throws(() => validator(123), {
+				name: "TypeError",
+				message: [
+					"Enumeration must have one value of",
+					"- red",
+					"- green",
+					'- (value) => typeof value === "string"',
+					"but provided",
+					123
+				].join("\n")
+			})
+		})
+
+		it("should validate arrays with custom functions", () => {
+			const isNumber = (value) => typeof value === "number"
+			const validator = Enum("red", isNumber)
+			assert.deepStrictEqual(validator(["red", 1, 2]), ["red", 1, 2])
+			assert.deepStrictEqual(validator([3, 4]), [3, 4])
+		})
+
+		it("should throw error for arrays with invalid values", () => {
+			const isNumber = (value) => typeof value === "number"
+			const validator = Enum("red", isNumber)
+			assert.throws(() => validator(["red", "blue"]), {
+				name: "TypeError",
+				message: [
+					"Enumeration must have one value of",
+					"- red",
+					'- (value) => typeof value === "number"',
+					"but provided",
+					"blue"
+				].join("\n")
+			})
+		})
 	})
 })

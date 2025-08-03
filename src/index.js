@@ -65,6 +65,12 @@ export function functionOf(value) {
 	return undefined
 }
 
+/**
+ * Checks if value is empty.
+ * Considers undefined, null, empty string, empty array, and empty object as empty.
+ * @param {...any} values - Values to check for emptiness.
+ * @returns {boolean}
+ */
 export function empty(...values) {
 	for (const value of values) {
 		if ([undefined, null, "", {}].includes(value)) {
@@ -94,10 +100,20 @@ export function empty(...values) {
 	return false
 }
 
+/**
+ * Checks if value is not empty.
+ * @param {any} value - Value to check.
+ * @returns {boolean}
+ */
 export function notEmpty(value) {
 	return !empty(value)
 }
 
+/**
+ * Returns the first value that is not empty after applying Fn to it.
+ * @param {(value: any) => any} Fn - Function to apply.
+ * @returns {(...args: any[]) => any|undefined}
+ */
 export function firstOf(Fn) {
 	return (...args) => {
 		for (const arg of args) {
@@ -109,6 +125,13 @@ export function firstOf(Fn) {
 	}
 }
 
+/**
+ * Compares pairs of arguments for strict equality.
+ * Throws TypeError for mismatched argument count.
+ * @param {...any} args - Arguments to compare in pairs.
+ * @returns {boolean}
+ * @throws {TypeError} If arguments are not paired correctly.
+ */
 export function equal(...args) {
 	if (0 === args.length || args.length % 2 === 1) {
 		throw new TypeError([
@@ -313,10 +336,50 @@ export function match(test, options = {}) {
 	}
 }
 
+/**
+ * Validator for enumeration values.
+ * Ensures that a value is one of the allowed values or passes custom validation functions.
+ * @param {...(string|number|boolean|Function)} args - Allowed values or validation functions.
+ * @returns {(value: any) => any}
+ */
+export function Enum(...args) {
+	const fns = args.filter(a => "function" === typeof a)
+	return (value) => {
+		if (Array.isArray(value)) {
+			value.every(v => {
+				const ok = fns.length > 0 ? fns.some(fn => fn(v)) : false
+				if (!args.includes(v) && !ok) {
+					throw new TypeError([
+						"Enumeration must have one value of",
+						"- " + args.join("\n- "),
+						"but provided",
+						v
+					].join("\n"))
+				}
+				return true
+			})
+			return value
+		}
+		const ok = fns.length > 0 ? fns.some(fn => fn(value)) : false
+		if (!args.includes(value) && !ok) {
+			throw new TypeError([
+				"Enumeration must have one value of",
+				"- " + args.join("\n- "),
+				"but provided",
+				value
+			].join("\n"))
+		}
+		return value
+	}
+}
+
 import FullObject from "./Object/FullObject.js"
 import ObjectWithAlias from "./Object/ObjectWithAlias.js"
 import UndefinedObject from "./Object/UndefinedObject.js"
 import ContainerObject from "./Object/ContainerObject.js"
 import NonEmptyObject from "./Object/NonEmptyObject.js"
+import NANO from "./NANO.js"
 
 export { FullObject, UndefinedObject, ObjectWithAlias, ContainerObject, NonEmptyObject }
+
+export default NANO

@@ -45,7 +45,7 @@ describe('NANO parse and stringify', () => {
 		assert.strictEqual(output, NANO.EMPTY_OBJECT + '\nname: John\nage: 30')
 	})
 
-	it.skip("should parse a document", () => {
+	it.todo("should parse a document", () => {
 		const text = [
 			"- href: //nan0.dev/",
 			"  title: NaN0 for developers",
@@ -56,7 +56,7 @@ describe('NANO parse and stringify', () => {
 		])
 	})
 
-	it.skip("should parse a larger document", () => {
+	it.todo("should parse a larger document", () => {
 		const text = `
 document:
   array when empty: []
