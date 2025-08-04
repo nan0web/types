@@ -1,18 +1,30 @@
 {
-  "name": "@nanoweb/types",
-  "version": "1.0.0",
-  "description": "NaN•Types",
-  "main": "src/index.js",
-  "type": "module",
-  "scripts": {
-    "test": "vitest run"
-  },
-  "keywords": [],
-  "author": "YaRaSlove [ЯRаСлав]",
-  "license": "ISC",
-  "packageManager": "pnpm@10.11.0",
-  "devDependencies": {
-    "@vitest/coverage-v8": "^3.2.4",
-    "vitest": "^3.2.4"
-  }
+	"name": "@nan0web/types",
+	"version": "1.0.0",
+	"description": "Universal system for managing data structures and types in JavaScript applications based on the nan0 philosophy where zero represents the universe.",
+	"main": "src/index.js",
+	"type": "module",
+	"scripts": {
+		"test": "node --test",
+		"precommit": "npm test",
+		"prepush": "npm test",
+		"prepare": "husky"
+	},
+	"keywords": [
+		"nan0",
+		"data",
+		"types",
+		"utilities",
+		"object",
+		"array",
+		"validation",
+		"format",
+		"parser"
+	],
+	"author": "ЯRаСлав YaRaSLove <support@yaro.page>",
+	"license": "ISC",
+	"packageManager": "pnpm@10.11.0",
+	"devDependencies": {
+		"husky": "^9.1.7"
+	}
 }

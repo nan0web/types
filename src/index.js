@@ -135,7 +135,7 @@ export function firstOf(Fn) {
 export function equal(...args) {
 	if (0 === args.length || args.length % 2 === 1) {
 		throw new TypeError([
-			"Only paird arguments are allowed",
+			"Only paired arguments are allowed",
 			"equal(x, true, y, false, z, 0) => x === true && y === false && z === 0"
 		].join("\n"))
 	}

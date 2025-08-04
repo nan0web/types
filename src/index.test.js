@@ -191,7 +191,7 @@ describe("nano-types utilities", () => {
 			assert.throws(() => equal(), TypeError)
 			assert.throws(() => equal(1), {
 				message: [
-					"Only paird arguments are allowed",
+					"Only paired arguments are allowed",
 					"equal(x, true, y, false, z, 0) => x === true && y === false && z === 0"
 				].join("\n")
 			})
@@ -199,7 +199,7 @@ describe("nano-types utilities", () => {
 
 		it("throws TypeError if number of arguments is odd", () => {
 			assert.throws(() => equal(1, 1, 2), TypeError)
-			assert.throws(() => equal("x", true, "y"), /Only paird arguments are allowed/)
+			assert.throws(() => equal("x", true, "y"), /Only paired arguments are allowed/)
 		})
 
 		it("works correctly with undefined values", () => {
