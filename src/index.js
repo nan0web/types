@@ -31,7 +31,13 @@ export function nullOr(Fn) {
  * @returns {(value: any[]) => any[]}
  */
 export function arrayOf(Fn) {
-	return (values = []) => values.map(value => Fn?.from?.(value) ?? Fn(value))
+	return (values = []) => values.map(value => {
+		if (Fn && typeof Fn === 'object' && 'from' in Fn && typeof Fn.from === 'function') {
+			return Fn.from(value)
+		}
+		// If Fn is a plain function, call it directly
+		return typeof Fn === 'function' ? Fn(value) : value
+	})
 }
 
 /**
@@ -57,6 +63,11 @@ export function typeOf(Fn) {
  * @returns {Function|undefined}
  */
 export function functionOf(value) {
+	if (value === Boolean) return Boolean
+	if (value === Number) return Number
+	if (value === String) return String
+	if (value === Array) return (...args) => new Array(...args)
+	if (value === Object) return (...args) => new Object(...args)
 	if ("boolean" === typeof value) return Boolean
 	if ("number" === typeof value) return Number
 	if ("string" === typeof value) return String
@@ -237,8 +248,9 @@ export function to(type) {
 					if (typeof desc.get === 'function') {
 						try {
 							obj[key] = convert(val[key], typ)
-						} catch (e) {
-							obj[key] = `[Getter error: ${e.message}]`
+						}
+						catch (/** @type {any} */ err) {
+							obj[key] = `[Getter error: ${err.message}]`
 						}
 					}
 				}
@@ -279,16 +291,15 @@ export function to(type) {
 			return Number(val)
 		}
 
-		return val;
+		return val
 	}
-
-	return (value) => convert(value, type);
+	return value => convert(value, type)
 }
 
 /**
  * Checks if any of the arguments match the test.
  * @param {string|RegExp} test
- * @param {Object} options
+ * @param {Object} [options={}]
  * @param {boolean} [options.caseInsensitive=false]
  * @param {string} [options.stringFn=""]
  * @param {"some"|"every"} [options.method="some"]
@@ -309,14 +320,14 @@ export function match(test, options = {}) {
 			const flags = test.flags + 'i'
 			regex = new RegExp(test.source, flags)
 		}
-		matcher = (value) => regex.test(value)
-	} else {
-		// test is a string
-		matcher = (value) => {
-			if (typeof value !== "string" || typeof test !== "string") return false
+		matcher = value => regex.test(value)
+	}
+	else {
+		matcher = value => {
+			if (typeof value !== 'string' || typeof test !== 'string') return false
 			const v = caseInsensitive ? value.toLowerCase() : value
 			const t = caseInsensitive ? test.toLowerCase() : test
-			return stringFn ? v[stringFn](t) : v === t
+			return stringFn && typeof v[stringFn] === 'function' ? v[stringFn](t) : v === t
 		}
 	}
 
@@ -339,14 +350,17 @@ export function match(test, options = {}) {
 /**
  * Validator for enumeration values.
  * Ensures that a value is one of the allowed values or passes custom validation functions.
+ *
  * @param {...(string|number|boolean|Function)} args - Allowed values or validation functions.
  * @returns {(value: any) => any}
  */
 export function Enum(...args) {
+	/** @type {Function[]} */
+	// @ts-ignore
 	const fns = args.filter(a => "function" === typeof a)
-	return (value) => {
+	return value => {
 		if (Array.isArray(value)) {
-			value.every(v => {
+			value.forEach(v => {
 				const ok = fns.length > 0 ? fns.some(fn => fn(v)) : false
 				if (!args.includes(v) && !ok) {
 					throw new TypeError([
@@ -356,7 +370,6 @@ export function Enum(...args) {
 						v
 					].join("\n"))
 				}
-				return true
 			})
 			return value
 		}
@@ -373,13 +386,20 @@ export function Enum(...args) {
 	}
 }
 
+/* eslint-disable no-unused-vars */
+import ContainerObject from "./Object/ContainerObject.js"
+import FilterString from "./Object/FilterString.js"
 import FullObject from "./Object/FullObject.js"
+import NonEmptyObject from "./Object/NonEmptyObject.js"
 import ObjectWithAlias from "./Object/ObjectWithAlias.js"
 import UndefinedObject from "./Object/UndefinedObject.js"
-import ContainerObject from "./Object/ContainerObject.js"
-import NonEmptyObject from "./Object/NonEmptyObject.js"
+import clone from "./clone.js"
+import merge from "./merge.js"
 import NANO from "./NANO.js"
 
-export { FullObject, UndefinedObject, ObjectWithAlias, ContainerObject, NonEmptyObject }
+export {
+	FilterString, FullObject, UndefinedObject, ObjectWithAlias, ContainerObject, NonEmptyObject,
+	clone, merge,
+}
 
 export default NANO

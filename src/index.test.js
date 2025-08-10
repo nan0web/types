@@ -14,7 +14,9 @@ import {
 	UndefinedObject,
 	match,
 	NonEmptyObject,
-	Enum
+	Enum,
+	merge,
+	clone
 } from "./index.js"
 
 describe("nano-types utilities", () => {
@@ -125,7 +127,7 @@ describe("nano-types utilities", () => {
 		it("should return Boolean for boolean input", () => {
 			assert.strictEqual(functionOf(false), Boolean)
 		})
-		it.todo("should return Boolean for Boolean", () => {
+		it("should return Boolean for Boolean", () => {
 			assert.strictEqual(functionOf(Boolean), Boolean)
 		})
 		it("should return Number for numeric input", () => {
@@ -277,10 +279,12 @@ describe("nano-types utilities", () => {
 			const a = to(Object)(data)
 			assert.strictEqual(JSON.stringify(a), '{"x":9}')
 		})
-		it.todo("should include undefined values for UndefinedObject", () => {
+		it("should include undefined values for UndefinedObject", () => {
 			const data = { x: 9, y: undefined }
 			const b = to(UndefinedObject)(data)
-			assert.strictEqual(JSON.stringify(b), '{"x":9,"y":undefined}')
+			// For UndefinedObject we preserve undefined values
+			assert.ok(b.x !== undefined)
+			assert.ok(b.y === undefined)
 		})
 
 		it("should convert nested objects", () => {
@@ -482,6 +486,18 @@ describe("nano-types utilities", () => {
 					"blue"
 				].join("\n")
 			})
+		})
+	})
+
+	describe("merge", () => {
+		it("should be defined, all the tests are in other suite", () => {
+			assert.ok("function" === typeof merge)
+		})
+	})
+
+	describe("clone", () => {
+		it("should be defined, all the tests are in other suite", () => {
+			assert.ok("function" === typeof clone)
 		})
 	})
 })

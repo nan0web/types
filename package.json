@@ -5,6 +5,7 @@
 	"main": "src/index.js",
 	"type": "module",
 	"scripts": {
+		"build": "tsc",
 		"test": "node --test",
 		"precommit": "npm test",
 		"prepush": "npm test",

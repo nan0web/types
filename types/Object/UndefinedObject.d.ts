@@ -3,4 +3,5 @@
  *
  * @class UndefinedObject
  */
-export default class UndefinedObject { }
+export default class UndefinedObject {
+}

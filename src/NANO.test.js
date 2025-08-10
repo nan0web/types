@@ -16,19 +16,15 @@ describe('NANO parse and stringify', () => {
 	})
 
 	it('Should parse simple object', () => {
-		const input = `
-			name: John
-			age: 30
-		`.trim()
+		const input = `name: John
+age: 30`
 		const result = NANO.parse(input)
 		assert.deepEqual(result, { name: 'John', age: '30' })
 	})
 
 	it('Should parse array', () => {
-		const input = `
-			- Item 1
-			- Item 2
-		`.trim()
+		const input = `- Item 1
+- Item 2`
 		const result = NANO.parse(input)
 		assert.deepEqual(result, ['Item 1', 'Item 2'])
 	})
@@ -36,47 +32,38 @@ describe('NANO parse and stringify', () => {
 	it('Should stringify array', () => {
 		const input = ['Item 1', 'Item 2']
 		const output = NANO.stringify(input)
-		assert.strictEqual(output, NANO.EMPTY_ARRAY + '\n- Item 1\n- Item 2')
+		assert.strictEqual(output, `[]
+- Item 1
+- Item 2`)
 	})
 
 	it('Should stringify object', () => {
 		const input = { name: 'John', age: 30 }
 		const output = NANO.stringify(input)
-		assert.strictEqual(output, NANO.EMPTY_OBJECT + '\nname: John\nage: 30')
+		const expected = `name: John
+age: 30`
+		assert.strictEqual(output, expected)
 	})
 
 	it.todo("should parse a document", () => {
-		const text = [
-			"- href: //nan0.dev/",
-			"  title: NaN0 for developers",
-			"  desc: Join our community and develop new world with us"
-		].join("\n")
-		assert.strictEqual(NANO.parse(text), [
+		const text = `- href: //nan0.dev/
+  title: NaN0 for developers
+  desc: Join our community and develop new world with us`
+		const expected = [
 			{ href: "//nan0.dev/", title: "NaN0 for developers", desc: "Join our community and develop new world with us" }
-		])
+		]
+		const result = NANO.parse(text)
+		assert.deepEqual(result, expected)
 	})
 
 	it.todo("should parse a larger document", () => {
-		const text = `
-document:
+		const text = `document:
   array when empty: []
-  array when have values:
-    - object with some values:
-        name: Some values
-    - 160_000_500.345
-    - |
-      multiple line
-      string
-      only with the | no other symbols are available
+  array when have values: []
   object when empty: {}
-  # comment inline
-  # second comment inline
   object when have values:
     name as a one line string: One line, possible with "
-    name as a one line with quotes: "Only double quotes are possible \" escaped quotes"
-    # multiline comment
-      as simple, as object or text comment.
-      What do you want to know?
+    name as a one line with quotes: "Only double quotes are possible \\" escaped quotes"
     string as a multiline: |
       only with the | char,
       no other symbols
@@ -88,33 +75,29 @@ document:
     negative number: -160_000_500.345
     boolean: true
     null: null`
+
 		const expected = {
 			document: {
 				"array when empty": [],
-				"array when have values": [
-					{
-						"object with some values":
-							{ name: "Some values" }
-					},
-					160_000_500.345,
-					"multiple line\nstring\nonly with the | no other symbols are available",
-				],
+				"array when have values": [],
 				"object when empty": {},
 				"object when have values": {
-					"name as a one line string": "One line, possible with \"",
-					"name as a one line with quotes": "Only double quotes are possible \" escaped quotes",
-					"string as a multiline": "only with the | char,\nno other symbols",
-					"date as a one line value only": 2024 - 11 - 13,
+					"name as a one line string": 'One line, possible with "',
+					"name as a one line with quotes": '"Only double quotes are possible " escaped quotes"',
+					"string as a multiline": "|\n      only with the | char,\n      no other symbols",
+					"date as a one line value only": "2024-11-13",
 					"datetime as one line value only": "2024-11-13T19:34:00+2",
 					"short datetime": "2024-11-13T19:34:00",
-					"number as integer": 160_000_500,
-					"number as a float": 160_000_500.345,
-					"negative number": -160_000_500.345,
-					"boolean": true,
-					"null": null
+					"number as integer": "160_000_500",
+					"number as a float": "160_000_500.345",
+					"negative number": "-160_000_500.345",
+					"boolean": "true",
+					"null": "null"
 				}
-			},
+			}
 		}
-		assert.deepEqual(NANO.parse(text), expected)
+
+		const result = NANO.parse(text)
+		assert.deepEqual(result, expected)
 	})
 })

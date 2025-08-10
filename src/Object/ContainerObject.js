@@ -1,3 +1,8 @@
+/**
+ * Represents a generic hierarchical container.
+ *
+ * @class ContainerObject
+ */
 class ContainerObject {
 	/** @type {Array} */
 	children
@@ -19,19 +24,9 @@ class ContainerObject {
 	}
 
 	/**
-	 * Returns the latest of latest.
-	 * So for:
-	 * a
-	 * |- d
-	 * |- e
-	 * b
-	 * Must return b
-	 * For
-	 * a
-	 * |- d
-	 * |- e
-	 *    |- f
-	 * Must return f
+	 * Returns the most recent (deepest) container.
+	 *
+	 * @returns {ContainerObject}
 	 */
 	get recent() {
 		const arr = this.flat()
@@ -39,11 +34,21 @@ class ContainerObject {
 		return arr[arr.length - 1].recent
 	}
 
+	/**
+	 * Adds element to the container.
+	 * @param {*} element
+	 * @returns {this}
+	 */
 	add(element) {
 		this.children.push(element)
 		return this
 	}
 
+	/**
+	 * Removes the element from the container.
+	 * @param {*} element
+	 * @returns {this}
+	 */
 	remove(element) {
 		this.children = this.children.filter(e => e !== element)
 		return this
@@ -54,7 +59,14 @@ class ContainerObject {
 		return this
 	}
 
-	find(filter = v => 1, recursively = false) {
+	/**
+	 * Finds an element by filter.
+	 *
+	 * @param {(v:any)=>boolean} filter
+	 * @param {boolean} [recursively=false]
+	 * @returns {*}
+	 */
+	find(filter = () => true, recursively = false) {
 		const elements = this.children
 		if (recursively) {
 			for (const element of elements) {
@@ -69,13 +81,17 @@ class ContainerObject {
 		return elements.find(filter)
 	}
 
+	/**
+	 * Flattens the tree into an array.
+	 *
+	 * @returns {ContainerObject[]}
+	 */
 	flat() {
-		const result = [
-			this
-		]
+		const result = [this]
 		const elements = this.children
 		for (const element of elements) {
 			if (element instanceof ContainerObject) {
+				// @ts-ignore
 				result.push(...element.flat())
 			}
 		}
@@ -86,20 +102,42 @@ class ContainerObject {
 		return this.flat()
 	}
 
-	filter(filter = () => 1, recursively = false) {
+	/**
+	 * Filters children.
+	 *
+	 * @param {(v:any)=>boolean} [filter=()=>true]
+	 * @param {boolean} [recursively=false]
+	 * @returns {Array}
+	 */
+	filter(filter = () => true, recursively = false) {
 		if (recursively) {
 			return this.flat().filter(filter)
 		}
 		return this.children.filter(filter)
 	}
 
+	/**
+	 * Maps over children.
+	 *
+	 * @param {Function} callback
+	 * @param {boolean} [recursively=false]
+	 * @returns {Array}
+	 */
 	map(callback, recursively = false) {
 		if (recursively) {
+			// @ts-ignore
 			return this.flat().map(callback)
 		}
+			// @ts-ignore
 		return this.children.map(callback)
 	}
 
+	/**
+	 * Factory method that returns an existing instance or creates a new one.
+	 *
+	 * @param {object|ContainerObject} [props={}]
+	 * @returns {ContainerObject}
+	 */
 	static from(props) {
 		if (props instanceof ContainerObject) return props
 		return new this(props)

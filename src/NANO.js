@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * NaN0 format - "0 is not a number" - zero is a universe that is a source of any
  * other numbers and else.
@@ -50,67 +51,147 @@ class NANO {
 	/**
 	 * Parses the NANO format into an object
 	 * @throws {Error} If invalid format
-	 * @param {string | ByteArray} input - Input in NANO format
+	 * @param {string | Array} input - Input in NANO format
 	 * @returns {any} - Parsed JavaScript object
 	 */
 	static parse(input) {
 		const rows = String(input).split("\n")
-		const result = []
-		const contextStack = [] // Stack to track nested contexts
-		let currentIndent = 0
+		const stack = []
+		let root = null
 
 		for (let i = 0; i < rows.length; i++) {
-			const row = rows[i].trim()
-			if (!row || row.startsWith(NANO.COMMENT_START)) continue
+			const row = rows[i]
+			if (!row || row.trim().startsWith(NANO.COMMENT_START)) continue
 
-			const indentLevel = (rows[i].length - row.length) / NANO.TAB.length
-			const isItem = row.startsWith("- ")
+			const indentLevel = (row.length - row.trimLeft().length) / NANO.TAB.length
+			const trimmedRow = row.trim()
 
-			// Handle indentation changes
-			if (indentLevel < currentIndent) {
-				// Pop contexts when going back to parent level
-				currentIndent = indentLevel
-				while (contextStack.length > indentLevel) {
-					contextStack.pop()
-				}
+			// Adjust stack to current indent level
+			while (stack.length > indentLevel) {
+				stack.pop()
 			}
 
-			if (isItem) {
-				const value = row.slice(2).trim()
-				if (contextStack.length > 0 && contextStack[contextStack.length - 1].type === "array") {
-					contextStack[contextStack.length - 1].data.push(value)
+			if (trimmedRow.startsWith("- ")) {
+				// Handle array items
+				const value = trimmedRow.slice(2)
+				if (stack.length === 0) {
+					// Top level array item
+					if (!root) {
+						root = []
+					}
+					root.push(value)
+					stack.push({ type: 'arrayItem', data: value, parent: root, index: root.length - 1 })
 				} else {
-					// Start a new array context if not already in one
-					const newArray = { type: "array", data: [value] }
-					contextStack.push(newArray)
-					currentIndent = indentLevel
-					result.push(newArray.data)
+					const parentContext = stack[stack.length - 1]
+					if (parentContext.type === 'array') {
+						parentContext.data.push(value)
+						stack.push({ type: 'arrayItem', data: value, parent: parentContext.data, index: parentContext.data.length - 1 })
+					} else if (parentContext.type === 'objectProperty') {
+						if (Array.isArray(parentContext.parent)) {
+							parentContext.parent[parentContext.index] = value
+						} else {
+							parentContext.parent[parentContext.key] = value
+						}
+						stack.push({ type: 'arrayItem', data: value, parent: parentContext.parent, key: parentContext.key, index: parentContext.index })
+					}
 				}
-			} else if (row === NANO.EMPTY_ARRAY) {
-				const newArray = { type: "array", data: [] }
-				contextStack.push(newArray)
-				currentIndent = indentLevel
-				result.push(newArray.data)
-			} else if (row === NANO.EMPTY_OBJECT) {
-				const newObject = { type: "object", data: {} }
-				contextStack.push(newObject)
-				currentIndent = indentLevel
-				result.push(newObject.data)
-			} else if (row.includes(":")) {
-				const [key, value] = row.split(/:\s*/, 2)
-				if (contextStack.length > 0 && contextStack[contextStack.length - 1].type === "object") {
-					contextStack[contextStack.length - 1].data[key] = value
+			} else if (trimmedRow === NANO.EMPTY_ARRAY) {
+				const newArray = []
+				if (stack.length === 0) {
+					root = newArray
 				} else {
-					// Start a new object context if not already in one
-					const newObject = { type: "object", data: { [key]: value } }
-					contextStack.push(newObject)
-					currentIndent = indentLevel
-					result.push(newObject.data)
+					const parentContext = stack[stack.length - 1]
+					if (parentContext.type === 'array') {
+						// @ts-ignore
+						parentContext.data.push(newArray)
+					} else if (parentContext.type === 'objectProperty') {
+						parentContext.parent[parentContext.key] = newArray
+					}
+				}
+				stack.push({ type: 'array', data: newArray })
+			} else if (trimmedRow === NANO.EMPTY_OBJECT) {
+				const newObject = {}
+				if (stack.length === 0) {
+					root = newObject
+				} else {
+					const parentContext = stack[stack.length - 1]
+					if (parentContext.type === 'array') {
+						// @ts-ignore
+						parentContext.data.push(newObject)
+					} else if (parentContext.type === 'objectProperty') {
+						parentContext.parent[parentContext.key] = newObject
+					}
+				}
+				stack.push({ type: 'object', data: newObject })
+			} else if (trimmedRow.includes(":")) {
+				// Handle key-value pairs
+				const delimiterIndex = trimmedRow.indexOf(":")
+				const key = trimmedRow.slice(0, delimiterIndex).trim()
+				let value = trimmedRow.slice(delimiterIndex + 1).trim()
+
+				// Handle special cases like multiline strings
+				if (value === NANO.MULTILINE_START) {
+					const multilineLines = []
+					let j = i + 1
+					while (j < rows.length) {
+						const nextRow = rows[j]
+						if (!nextRow) {
+							j++
+							continue
+						}
+						const nextIndentLevel = (nextRow.length - nextRow.trimLeft().length) / NANO.TAB.length
+						if (nextIndentLevel > indentLevel) {
+							multilineLines.push(nextRow.slice((indentLevel + 1) * NANO.TAB.length))
+							j++
+						} else {
+							break
+						}
+					}
+					value = multilineLines.join(NANO.NEW_LINE)
+					i = j - 1 // Skip processed multiline rows
+				} else if (value === NANO.EMPTY_ARRAY) {
+					// @ts-ignore
+					value = []
+				} else if (value === NANO.EMPTY_OBJECT) {
+					// @ts-ignore
+					value = {}
+				} else if (value === 'true') {
+					// @ts-ignore
+					value = true
+				} else if (value === 'false') {
+					// @ts-ignore
+					value = false
+				} else if (value === 'null') {
+					// @ts-ignore
+					value = null
+				} else if (!isNaN(Number(value.replace(/_/g, "")))) {
+					// @ts-ignore
+					value = Number(value.replace(/_/g, ""))
+				}
+
+				if (stack.length === 0) {
+					// Top level object property
+					if (!root) {
+						root = {}
+					}
+					root[key] = value
+					stack.push({ type: 'objectProperty', data: value, parent: root, key: key })
+				} else {
+					const parentContext = stack[stack.length - 1]
+					if (parentContext.type === 'object') {
+						parentContext.data[key] = value
+						stack.push({ type: 'objectProperty', data: value, parent: parentContext.data, key: key })
+					} else if (parentContext.type === 'array') {
+						const obj = { [key]: value }
+						parentContext.data.push(obj)
+						stack.push({ type: 'object', data: obj })
+						stack.push({ type: 'objectProperty', data: value, parent: obj, key: key })
+					}
 				}
 			}
 		}
 
-		return result.length > 1 ? result : result[0]
+		return root
 	}
 
 	/**
@@ -120,25 +201,63 @@ class NANO {
 	 */
 	static stringify(input) {
 		const lines = []
-		const recurse = (value, indent = 0) => {
+
+		const processValue = (value, indent = 0) => {
 			if (Array.isArray(value)) {
-				lines.push(NANO.EMPTY_ARRAY)
-				value.forEach(item => {
-					lines.push(NANO.TAB.repeat(indent) + "- " + item)
-				})
-			} else if (typeof value === "object" && value !== null) {
-				lines.push(NANO.EMPTY_OBJECT)
-				Object.entries(value).forEach(([key, val]) => {
-					lines.push(NANO.TAB.repeat(indent) + `${key}: ${val}`)
-				})
+				if (value.length === 0) {
+					return NANO.EMPTY_ARRAY
+				} else {
+					return value.map(item => {
+						const indentedItem = processValue(item, indent + 1)
+						if (typeof item === 'object' && item !== null) {
+							return NANO.TAB.repeat(indent) + "- " + indentedItem
+						} else {
+							return NANO.TAB.repeat(indent) + "- " + item
+						}
+					}).join(NANO.NEW_LINE)
+				}
+			} else if (typeof value === 'object' && value !== null) {
+				const entries = Object.entries(value)
+				if (entries.length === 0) {
+					return NANO.EMPTY_OBJECT
+				} else {
+					return entries.map(([key, val]) => {
+						const indentedValue = processValue(val, indent + 1)
+						if (typeof val === 'object' && val !== null) {
+							return NANO.TAB.repeat(indent) + key + ":" + NANO.NEW_LINE + indentedValue
+						} else {
+							return NANO.TAB.repeat(indent) + key + ": " + val
+						}
+					}).join(NANO.NEW_LINE)
+				}
 			} else {
-				lines.push(value)
+				return String(value)
 			}
 		}
 
-		recurse(input)
+		if (Array.isArray(input)) {
+			lines.push(NANO.EMPTY_ARRAY)
+			input.forEach(item => {
+				if (typeof item === 'object' && item !== null) {
+					lines.push("- " + processValue(item, 0))
+				} else {
+					lines.push("- " + item)
+				}
+			})
+		} else if (typeof input === 'object' && input !== null) {
+			Object.entries(input).forEach(([key, value]) => {
+				if (typeof value === 'object' && value !== null) {
+					lines.push(key + ":" + NANO.NEW_LINE + processValue(value, 0))
+				} else {
+					lines.push(key + ": " + value)
+				}
+			})
+		} else {
+			lines.push(String(input))
+		}
+
 		return lines.join(NANO.NEW_LINE)
 	}
 }
 
-export default NANO;
+export default NANO

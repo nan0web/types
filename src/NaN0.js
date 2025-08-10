@@ -54,9 +54,9 @@ class NaN0 {
 	static COMMENT_START = "# ";
 
 	/**
-	 * Parses the NANO format into an object
+	 * Parses the NaN0 format into an object
 	 * @throws {Error} If invalid format
-	 * @param {string | ByteArray} input - Input in NANO format
+	 * @param {string | Array} input - Input in NaN0 format
 	 * @returns {any} - Parsed JavaScript object
 	 */
 	static parse(input) {
@@ -65,9 +65,9 @@ class NaN0 {
 		let currentContext = null
 		for (let i = 0; i < rows.length; i++) {
 			const row = rows[i]
-			const indent = row.
+			// const indent = row.
 			if (null === currentContext) {
-				const delimiter = NANO.VALUE_DELIMITER.map(
+				const delimiter = NaN0.VALUE_DELIMITER.map(
 					d => `${row}\n`.includes(d) ? d : false
 				).filter(Boolean)[0]
 				if (delimiter) {
@@ -75,8 +75,8 @@ class NaN0 {
 					const value = values.join(delimiter)
 					// @todo check the next nested line if so present.
 				}
-				else if (row.trim().startsWith(NANO.COMMENT_START)) {
-					const [_, ...comments] = row.trim().split(NANO.COMMENT_START)
+				else if (row.trim().startsWith(NaN0.COMMENT_START)) {
+					const [_, ...comments] = row.trim().split(NaN0.COMMENT_START)
 					const comment = comments.join("\n")
 				}
 			}
@@ -86,22 +86,22 @@ class NaN0 {
 	}
 
 	/**
-	 * Stringifies any input object into .nano format
+	 * Stringifies any input object into .NaN0 format
 	 * @param {*} input - Input object to stringify
-	 * @returns {string} - NANO formatted string
+	 * @returns {string} - NaN0 formatted string
 	 */
 	static stringify(input) {
 		const lines = [];
 		const recurse = (value, indent = 0) => {
 			if (Array.isArray(value)) {
-				lines.push(NANO.EMPTY_ARRAY);
+				lines.push(NaN0.EMPTY_ARRAY);
 				value.forEach(item => {
-					lines.push(NANO.TAB.repeat(indent + 1) + "- " + item);
+					lines.push(NaN0.TAB.repeat(indent + 1) + "- " + item);
 				});
 			} else if (typeof value === "object" && value !== null) {
-				lines.push(NANO.EMPTY_OBJECT);
+				lines.push(NaN0.EMPTY_OBJECT);
 				Object.entries(value).forEach(([key, val]) => {
-					lines.push(NANO.TAB.repeat(indent + 1) + `${key}: ${val}`);
+					lines.push(NaN0.TAB.repeat(indent + 1) + `${key}: ${val}`);
 				});
 			} else {
 				lines.push(value);
@@ -109,7 +109,7 @@ class NaN0 {
 		};
 
 		recurse(input);
-		return lines.join(NANO.NEW_LINE);
+		return lines.join(NaN0.NEW_LINE);
 	}
 }
 

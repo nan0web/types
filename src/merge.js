@@ -12,7 +12,7 @@ import clone from './clone.js'
  * @returns {Object} - The deeply merged object in the form of target, so if the
  *                     target is object returns object, if target is array returns array.
  */
-function merge(target, source, { unique = true, deep = true } = {}) {
+function merge(target, source, { unique = true } = {}) {
 	if (typeof target !== 'object' || target === null) {
 		return source
 	}
