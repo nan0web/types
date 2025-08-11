@@ -234,7 +234,7 @@ describe("nano-types utilities", () => {
 			assert.ok(!equal({ a: 1, b: { c: 2 } }, { a: 1, b: { c: 3 } }))
 		})
 
-		it("works with instnaces", () => {
+		it("works with instances", () => {
 			class A { x = 9 }
 			class B extends A { get y() { return this.x ** 2 } fn() { } }
 			class C extends A { y = 3 }

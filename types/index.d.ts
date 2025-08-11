@@ -102,5 +102,7 @@ import ContainerObject from "./Object/ContainerObject.js";
 import NonEmptyObject from "./Object/NonEmptyObject.js";
 import clone from "./clone.js";
 import merge from "./merge.js";
+import Parser from "./Parser/index.js";
+import { Node } from "./Parser/index.js";
 import NANO from "./NANO.js";
-export { FilterString, FullObject, UndefinedObject, ObjectWithAlias, ContainerObject, NonEmptyObject, clone, merge };
+export { FilterString, FullObject, UndefinedObject, ObjectWithAlias, ContainerObject, NonEmptyObject, clone, merge, Parser, Node };

@@ -386,7 +386,6 @@ export function Enum(...args) {
 	}
 }
 
-/* eslint-disable no-unused-vars */
 import ContainerObject from "./Object/ContainerObject.js"
 import FilterString from "./Object/FilterString.js"
 import FullObject from "./Object/FullObject.js"
@@ -396,10 +395,12 @@ import UndefinedObject from "./Object/UndefinedObject.js"
 import clone from "./clone.js"
 import merge from "./merge.js"
 import NANO from "./NANO.js"
+import Parser, { Node } from "./Parser/index.js"
 
 export {
 	FilterString, FullObject, UndefinedObject, ObjectWithAlias, ContainerObject, NonEmptyObject,
 	clone, merge,
+	Parser, Node,
 }
 
 export default NANO

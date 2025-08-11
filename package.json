@@ -2,8 +2,23 @@
 	"name": "@nan0web/types",
 	"version": "1.0.0",
 	"description": "Universal system for managing data structures and types in JavaScript applications based on the nan0 philosophy where zero represents the universe.",
-	"main": "src/index.js",
 	"type": "module",
+	"main": "src/index.js",
+	"types": "types/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./types/index.d.ts",
+			"import": "./src/index.js"
+		},
+		"./src": {
+			"types": "./types/index.d.ts",
+			"import": "./src/index.js"
+		},
+		"./src/*": {
+			"types": "./types/*.d.ts",
+			"import": "./src/*.js"
+		}
+	},
 	"scripts": {
 		"build": "tsc",
 		"test": "node --test",

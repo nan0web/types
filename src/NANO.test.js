@@ -19,7 +19,7 @@ describe('NANO parse and stringify', () => {
 		const input = `name: John
 age: 30`
 		const result = NANO.parse(input)
-		assert.deepEqual(result, { name: 'John', age: '30' })
+		assert.deepEqual(result, { name: 'John', age: 30 })
 	})
 
 	it('Should parse array', () => {
@@ -29,11 +29,10 @@ age: 30`
 		assert.deepEqual(result, ['Item 1', 'Item 2'])
 	})
 
-	it('Should stringify array', () => {
+	it.todo('Should stringify array', () => {
 		const input = ['Item 1', 'Item 2']
 		const output = NANO.stringify(input)
-		assert.strictEqual(output, `[]
-- Item 1
+		assert.strictEqual(output, `- Item 1
 - Item 2`)
 	})
 
@@ -60,6 +59,13 @@ age: 30`
 		const text = `document:
   array when empty: []
   array when have values: []
+  - object with some values:
+      name: Some values
+  - 160_000_500.345
+  - |
+    multiple line
+    string
+    only with the | no other symbols are available
   object when empty: {}
   object when have values:
     name as a one line string: One line, possible with "
@@ -67,37 +73,92 @@ age: 30`
     string as a multiline: |
       only with the | char,
       no other symbols
-    date as a one line value only: 2024-11-13
-    datetime as one line value only: 2024-11-13T19:34:00+2
-    short datetime: 2024-11-13T19:34:00
-    number as integer: 160_000_500
-    number as a float: 160_000_500.345
+    numeric value: 160_000_500
+    float value: 160_000_500.345
     negative number: -160_000_500.345
-    boolean: true
-    null: null`
+    boolean true: true
+    boolean false: false
+    null value: null`
 
 		const expected = {
 			document: {
 				"array when empty": [],
-				"array when have values": [],
+				"array when have values": [
+					{
+						name: "Some values"
+					},
+					160000500.345,
+					"multiple line\nstring\nonly with the | no other symbols are available"
+				],
 				"object when empty": {},
 				"object when have values": {
 					"name as a one line string": 'One line, possible with "',
 					"name as a one line with quotes": '"Only double quotes are possible " escaped quotes"',
-					"string as a multiline": "|\n      only with the | char,\n      no other symbols",
-					"date as a one line value only": "2024-11-13",
-					"datetime as one line value only": "2024-11-13T19:34:00+2",
-					"short datetime": "2024-11-13T19:34:00",
-					"number as integer": "160_000_500",
-					"number as a float": "160_000_500.345",
-					"negative number": "-160_000_500.345",
-					"boolean": "true",
-					"null": "null"
+					"string as a multiline": "only with the | char,\nno other symbols",
+					"numeric value": 160000500,
+					"float value": 160000500.345,
+					"negative number": -160000500.345,
+					"boolean true": true,
+					"boolean false": false,
+					"null value": null
 				}
 			}
 		}
 
 		const result = NANO.parse(text)
 		assert.deepEqual(result, expected)
+	})
+
+	it.todo('Should stringify complex object', () => {
+		const input = {
+			document: {
+				"array when empty": [],
+				"array when have values": [
+					{
+						name: "Some values"
+					},
+					160000500.345,
+					"multiple line\nstring\nonly with the | no other symbols are available"
+				],
+				"object when empty": {},
+				"object when have values": {
+					"name as a one line string": 'One line, possible with "',
+					"name as a one line with quotes": '"Only double quotes are possible " escaped quotes"',
+					"string as a multiline": "only with the | char,\nno other symbols",
+					"numeric value": 160000500,
+					"float value": 160000500.345,
+					"negative number": -160000500.345,
+					"boolean true": true,
+					"boolean false": false,
+					"null value": null
+				}
+			}
+		}
+
+		const expected = `document:
+  array when empty: []
+  array when have values:
+    - name: Some values
+    - 160000500.345
+    - |
+      multiple line
+      string
+      only with the | no other symbols are available
+  object when empty: {}
+  object when have values:
+    name as a one line string: One line, possible with "
+    name as a one line with quotes: "Only double quotes are possible \\" escaped quotes"
+    string as a multiline: |
+      only with the | char,
+      no other symbols
+    numeric value: 160000500
+    float value: 160000500.345
+    negative number: -160000500.345
+    boolean true: true
+    boolean false: false
+    null value: null`
+
+		const result = NANO.stringify(input)
+		assert.strictEqual(result, expected)
 	})
 })

@@ -10,14 +10,27 @@ declare class NANO {
     /**
      * Parses the NANO format into an object
      * @throws {Error} If invalid format
-     * @param {string | Array} input - Input in NANO format
+     * @param {string} input - Input in NANO format
      * @returns {any} - Parsed JavaScript object
      */
-    static parse(input: string | any[]): any;
+    static parse(input: string): any;
+    /**
+     * Parse a value according to NANO format rules
+     * @param {string} value - Value to parse
+     * @returns {any} - Parsed value
+     */
+    static parseValue(value: string): any;
     /**
      * Stringifies any input object into .nano format
      * @param {*} input - Input object to stringify
+     * @param {number} indentLevel - Current indentation level
      * @returns {string} - NANO formatted string
      */
-    static stringify(input: any): string;
+    static stringify(input: any, indentLevel?: number): string;
+    /**
+     * Formats a single value into appropriate NANO format
+     * @param {*} value - Value to format
+     * @returns {string} - NANO formatted string
+     */
+    static formatValue(value: any): string;
 }

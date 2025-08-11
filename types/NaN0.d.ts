@@ -11,10 +11,10 @@ declare class NaN0 {
     /**
      * Parses the NaN0 format into an object
      * @throws {Error} If invalid format
-     * @param {string | Array} input - Input in NaN0 format
+     * @param {string} input - Input in NaN0 format
      * @returns {any} - Parsed JavaScript object
      */
-    static parse(input: string | any[]): any;
+    static parse(input: string): any;
     /**
      * Stringifies any input object into .NaN0 format
      * @param {*} input - Input object to stringify
