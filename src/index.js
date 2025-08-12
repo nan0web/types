@@ -386,6 +386,17 @@ export function Enum(...args) {
 	}
 }
 
+/**
+ * Determine whether a function can be used as a constructor.
+ * @param {Function} fn - Function to test.
+ * @returns {boolean} True if callable with `new`, false otherwise.
+ */
+export function isConstructible(fn) {
+	// Classes and constructor functions have a non-empty prototype.
+	return typeof fn === "function" && fn.prototype && fn.prototype !== Object.prototype
+}
+
+
 import ContainerObject from "./Object/ContainerObject.js"
 import FilterString from "./Object/FilterString.js"
 import FullObject from "./Object/FullObject.js"

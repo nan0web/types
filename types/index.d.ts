@@ -93,6 +93,12 @@ export function match(test: string | RegExp, options?: {
  * @returns {(value: any) => any}
  */
 export function Enum(...args: (string | number | boolean | Function)[]): (value: any) => any;
+/**
+ * Determine whether a function can be used as a constructor.
+ * @param {Function} fn - Function to test.
+ * @returns {boolean} True if callable with `new`, false otherwise.
+ */
+export function isConstructible(fn: Function): boolean;
 export default NANO;
 import FilterString from "./Object/FilterString.js";
 import FullObject from "./Object/FullObject.js";

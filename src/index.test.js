@@ -16,7 +16,8 @@ import {
 	NonEmptyObject,
 	Enum,
 	merge,
-	clone
+	clone,
+	isConstructible,
 } from "./index.js"
 
 describe("nano-types utilities", () => {
@@ -499,5 +500,15 @@ describe("nano-types utilities", () => {
 		it("should be defined, all the tests are in other suite", () => {
 			assert.ok("function" === typeof clone)
 		})
+	})
+
+	describe("isConstructible()", () => {
+		const fnNope = () => {}
+		class Yes {}
+
+		assert.ok(!isConstructible(fnNope))
+		assert.ok(isConstructible(Yes))
+		assert.ok(!isConstructible(""))
+		assert.ok(isConstructible(String))
 	})
 })
