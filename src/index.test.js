@@ -262,14 +262,17 @@ describe("nano-types utilities", () => {
 			class A { x = 9 }
 			class B extends A { get y() { return this.x ** 2 } fn() { } }
 			class C extends B { toObject() { return { x: this.x, y: this.y, c: "ψ" } } }
+			class E { get a() { return new A() } get b() { return new B() } }
 			const a = to(FullObject)(new A())
 			const b = to(FullObject)(new B())
 			const c = to(Object)(new C())
 			const d = to(FullObject)(new C())
+			const e = to(FullObject)(new E())
 			assert.deepStrictEqual(a, { x: 9 })
 			assert.deepStrictEqual(b, { x: 9, y: 81 })
 			assert.deepStrictEqual(c, { x: 9, y: 81, c: "ψ" })
 			assert.deepStrictEqual(d, { x: 9, y: 81, c: "ψ" })
+			assert.deepStrictEqual(e, { a: { x: 9 }, b: { x: 9, y: 81 } })
 		})
 		it("should ignore undefined values", () => {
 			const a = to(Object)({ x: 9, y: undefined })
