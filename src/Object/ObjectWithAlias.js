@@ -8,6 +8,8 @@
 class ObjectWithAlias {
 	static ALIAS = {}
 
+	constructor(input = {}) {}
+
 	/**
 	 * Factory method that maps aliased keys to their target names.
 	 *
@@ -21,7 +23,7 @@ class ObjectWithAlias {
 				props[value] = props[key]
 			}
 		}
-		return new this()
+		return new this(props)
 	}
 }
 

@@ -15,4 +15,5 @@ declare class ObjectWithAlias {
      * @returns {ObjectWithAlias} Instance with aliases resolved
      */
     static from(props?: object): ObjectWithAlias;
+    constructor(input?: {});
 }

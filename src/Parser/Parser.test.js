@@ -91,4 +91,23 @@ describe('Parser', () => {
 		assert.strictEqual(child1.content, 'Child')
 		assert.strictEqual(child2.content, 'AnotherChild')
 	})
+
+	it("should find tab from text", () => {
+		const text = [
+			"# Document",
+			"1. First task",
+			"  1. First sub-task",
+			"  1. Second sub-task",
+			"    1. Sub-sub-task",
+			"1. Second task",
+		].join("\n")
+		const short = Parser.findTab(text)
+		assert.equal(short, "  ")
+
+		const long = Parser.findTab(text, [4, "\t"])
+		assert.equal(long, "    ")
+
+		const tab = Parser.findTab("\tFirst line\n  Second line", ["\t", 2, 4])
+		assert.equal(tab, "\t")
+	})
 })

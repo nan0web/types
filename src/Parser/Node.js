@@ -15,17 +15,22 @@ class Node extends ContainerObject {
 	content
 	/** @type {Node[]} */
 	children = []
+	/** @type {number} */
+	indent
 
-	constructor({ content = "", children = [] } = {}) {
+	constructor(input = {}) {
+		const { content = "", children = [], indent = 0 } = input
 		super({ children, level: 0 })
 		this.content = String(content)
 		// @ts-ignore
 		this.children = children.map(c => Node.from(c))
+		this.indent = Number(indent)
 	}
 
-	toString() {
+	toString({ trim = false, tab = "\t" } = {}) {
+		const prefix = trim ? "" : tab.repeat(this.indent)
 		return [
-			this.content,
+			prefix + this.content,
 			...this.children.map(String),
 		].join("\n\n")
 	}

@@ -70,9 +70,17 @@ declare class ContainerObject {
     /**
      * Maps over children.
      *
-     * @param {Function} callback
+     * @param {(value: ContainerObject, index: number, arr: ContainerObject[]) => any[]} callback
      * @param {boolean} [recursively=false]
      * @returns {Array}
      */
-    map(callback: Function, recursively?: boolean | undefined): any[];
+    map(callback: (value: ContainerObject, index: number, arr: ContainerObject[]) => any[], recursively?: boolean | undefined): any[];
+    /**
+     * Asynchronously maps over children.
+     *
+     * @param {(value: ContainerObject, index: number, arr: ContainerObject[]) => Promise<any[]>} callback
+     * @param {boolean} [recursively=false]
+     * @returns {Promise<Array>}
+     */
+    asyncMap(callback: (value: ContainerObject, index: number, arr: ContainerObject[]) => Promise<any[]>, recursively?: boolean | undefined): Promise<any[]>;
 }

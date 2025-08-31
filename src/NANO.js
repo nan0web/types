@@ -88,9 +88,9 @@ class NANO {
 						parentContext.data.push(parsedValue)
 					} else if (parentContext.type === 'objectProperty') {
 						if (Array.isArray(parentContext.parent)) {
-							parentContext.parent[parentContext.index] = parsedValue
+							parentContext.parent[parentContext.index || ""] = parsedValue
 						} else {
-							parentContext.parent[parentContext.key] = parsedValue
+							parentContext.parent[parentContext.key || ""] = parsedValue
 						}
 					}
 				}
@@ -175,7 +175,7 @@ class NANO {
 					if (parentContext.type === 'array') {
 						parentContext.data.push(newArray)
 					} else if (parentContext.type === 'objectProperty') {
-						parentContext.parent[parentContext.key] = newArray
+						parentContext.parent[parentContext.key || ""] = newArray
 					}
 				}
 				stack.push({ type: 'array', data: newArray })
@@ -188,7 +188,7 @@ class NANO {
 					if (parentContext.type === 'array') {
 						parentContext.data.push(newObject)
 					} else if (parentContext.type === 'objectProperty') {
-						parentContext.parent[parentContext.key] = newObject
+						parentContext.parent[parentContext.key || ""] = newObject
 					}
 				}
 				stack.push({ type: 'object', data: newObject })

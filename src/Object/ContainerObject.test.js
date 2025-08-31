@@ -39,6 +39,21 @@ describe('ContainerObject', () => {
 		assert.deepStrictEqual(ids, [0, 1])
 	})
 
+	it('should async map recursively', async () => {
+		const a = new ContainerObject()
+		const b = new ContainerObject()
+		a.add(b)
+
+		const asyncCallback = async (item, index) => {
+			// Simulate async operation
+			await new Promise(resolve => setTimeout(resolve, 1))
+			return index
+		}
+
+		const ids = await a.asyncMap(asyncCallback, true)
+		assert.deepStrictEqual(ids, [0, 1])
+	})
+
 	it('static from should return same instance when given ContainerObject', () => {
 		const instance = new ContainerObject()
 		const same = ContainerObject.from(instance)

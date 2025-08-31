@@ -4,13 +4,16 @@ export default Node;
  * ──  { content:string, children:Array<Node> }
  */
 declare class Node extends ContainerObject {
-    constructor({ content, children }?: {
-        content?: string | undefined;
-        children?: any[] | undefined;
-    });
+    constructor(input?: {});
     /** @type {string} */
     content: string;
     /** @type {Node[]} */
     children: Node[];
+    /** @type {number} */
+    indent: number;
+    toString({ trim, tab }?: {
+        trim?: boolean | undefined;
+        tab?: string | undefined;
+    }): string;
 }
 import ContainerObject from "../Object/ContainerObject.js";

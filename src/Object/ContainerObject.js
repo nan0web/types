@@ -119,7 +119,7 @@ class ContainerObject {
 	/**
 	 * Maps over children.
 	 *
-	 * @param {Function} callback
+	 * @param {(value: ContainerObject, index: number, arr: ContainerObject[]) => any[]} callback
 	 * @param {boolean} [recursively=false]
 	 * @returns {Array}
 	 */
@@ -128,8 +128,24 @@ class ContainerObject {
 			// @ts-ignore
 			return this.flat().map(callback)
 		}
-			// @ts-ignore
+		// @ts-ignore
 		return this.children.map(callback)
+	}
+
+	/**
+	 * Asynchronously maps over children.
+	 *
+	 * @param {(value: ContainerObject, index: number, arr: ContainerObject[]) => Promise<any[]>} callback
+	 * @param {boolean} [recursively=false]
+	 * @returns {Promise<Array>}
+	 */
+	async asyncMap(callback, recursively = false) {
+		if (recursively) {
+			// @ts-ignore
+			return Promise.all(this.flat().map(callback))
+		}
+		// @ts-ignore
+		return Promise.all(this.children.map(callback))
 	}
 
 	/**
