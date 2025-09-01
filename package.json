@@ -40,7 +40,7 @@
 		"test:release": "node --test \"releases/**/*.test.js\"",
 		"test:coverage": "node --experimental-test-coverage --test-coverage-include=\"src/**/*.js\" --test-coverage-exclude=\"src/**/*.test.js\" --test \"src/**/*.test.js\"",
 		"test:coverage:collect": "nan0test coverage",
-		"test:status": "nan0test status"
+		"test:status": "nan0test status --hide-name"
 	},
 	"keywords": [
 		"nan0",
@@ -58,6 +58,7 @@
 	"packageManager": "pnpm@10.11.0",
 	"devDependencies": {
 		"husky": "^9.1.7",
+		"@nan0web/llimo": "workspace:*",
 		"@nan0web/release": "workspace:*",
 		"@nan0web/test": "workspace:*",
 		"@nan0web/ui-cli": "workspace:*"

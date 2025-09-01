@@ -1,19 +1,16 @@
 # @nan0web/types
 
-|Package name|[Status](https://github.com/nan0web/monorepo/blob/main/system.md#написання-сценаріїв)|Documentation|Test coverage|Features|Npm version|
-|---|---|---|---|---|---|
- |[@nan0web/types](https://github.com/nan0web/@nan0web/types/) |🔴 `66.1%` |🧪 [English 🏴󠁧󠁢󠁥󠁮󠁧󠁿](https://github.com/nan0web/@nan0web/types/blob/main/README.md) |🟢 `90.4%` |🕹️ playground |— |
+|[Status](https://github.com/nan0web/monorepo/blob/main/system.md#написання-сценаріїв)|Documentation|Test coverage|Features|Npm version|
+|---|---|---|---|---|
+ |🟢 `98.3%` |🧪 [English 🏴󠁧󠁢󠁥󠁮󠁧󠁿](https://github.com/nan0web/types/blob/main/README.md)<br />[Українською 🇺🇦](https://github.com/nan0web/types/blob/main/docs/uk/README.md) |🟢 `90.4%` |✅ d.ts 📜 system.md 🕹️ playground |1.0.0 |
 
 A minimal, zero-dependency toolkit for managing JavaScript data structures,
-conversions, and type validation. Built for [nan0 philosophy](https://nan0.dev),
+conversions, and type validation. Built for [nan0web philosophy](https://github.com/nan0web/monorepo/blob/main/system.md#nanweb-nan0web),
 where zero represents the infinite source (universe), from which emerge meaningful structures.
 
 This package helps you work safely with types, objects, arrays, NaN0 format documents,
 and basic tree structures like indented texts. It is especially useful in monorepos
 where lightweight, proven, reusable utilities are essential.
-
-This document is available in other languages:
-- [Ukrainian 🇺🇦](./docs/uk/README.md)
 
 ## Installation
 
@@ -52,10 +49,6 @@ Checks if any or all of the arguments match a string or regex pattern.
     - `stringFn` (string) – A method like `startsWith`, `includes`.
     - `method` ("some"|"every") – Whether check one or all args. Default `"some"`.
 
-@example
-const validUrl = match(/^https?:\/\//, { method: 'some' })
-validUrl('https://nan0.dev', 'invalid') // true
-
 How to use `match(regex)`?
 ```js
 const fn = match(/^hello$/)
@@ -66,23 +59,12 @@ console.info(fn("hello", "world")) // ← true
 Validates a value (or array of values) against a list of allowed values
 or custom validator functions.
 
-@example
-const colorValidator = Enum("red", "green", "blue", (val) => typeof val === "string" && val.length > 2)
-colorValidator("red") // red
-colorValidator("purple") // purple
-colorValidator(123) // throws TypeError
-
 How to validate with Enum?
 ```js
 const color = Enum('red', 'green', 'blue')
 ```
 ### `oneOf(...args)`
 Returns a value if it exists in the list, otherwise returns undefined.
-
-@example
-const fn = oneOf("a", "b", "c")
-assert.strictEqual(fn("a"), "a")
-assert.strictEqual(fn("x"), undefined)
 
 How to use oneOf?
 ```js
@@ -173,15 +155,6 @@ console.info(converted) // ← { x: 9 }
 
 A base class whose `.toObject()` skips properties with empty values.
 
-@example
-class B extends NonEmptyObject {
-  name = "Name"
-  emptyValue = ""
-}
-
-const obj = new B().toObject()
-console.log(obj) // { name: "Name" }
-
 How to use NonEmptyObject to filter empty values?
 ```js
 class B extends NonEmptyObject {
@@ -263,10 +236,6 @@ console.info(tree.toString({ trim: true })) // ← "root\n\nchild\n\nsubchild"
 Generic tree node that holds content and children.
 You can extend it into format-specific nodes (e.g., Markdown AST).
 
-@example
-const node = new Node({ content: "Title", indent: 0 })
-node.add(new Node({ content: "Paragraph", indent: 1 }))
-
 How to build a tree with Node?
 ```js
 const root = new Node({ content: "root" })
@@ -281,8 +250,6 @@ These formats provide minimalistic, human-friendly serialization for typed data.
 - `NANO` – core implementation
 - `NaN0` – extended with support for date, comments, etc.
 
-/**
-@docs
 ## Playground
 
 How to run CLI sandbox?
@@ -300,8 +267,8 @@ Uses `d.ts` to provide autocomplete hints.
 
 ## Contributing
 
-How to contribute? - [check here](./CONTRIBUTING.md)
+How to contribute? - [check here](https://github.com/nan0web/types/blob/main/CONTRIBUTING.md)
 
 ## License
 
-How to license? - [ISC LICENSE](./LICENSE) file.
+How to license? - [ISC LICENSE](https://github.com/nan0web/types/blob/main/LICENSE) file.
