@@ -103,6 +103,7 @@ function testRender() {
 	 *     - `method` ("some"|"every") – Whether check one or all args. Default `"some"`.
 	 */
 	it('How to use `match(regex)`?', () => {
+		//import { match } from "@nan0web/types"
 		const fn = match(/^hello$/)
 		console.info(fn("hello", "world")) // ← true
 		assert.equal(fn("hello", "world"), true)
@@ -117,8 +118,11 @@ function testRender() {
 	 * or custom validator functions.
 	 */
 	it('How to validate with Enum?', () => {
+		//import { Enum } from "@nan0web/types"
 		const color = Enum('red', 'green', 'blue')
-		assert.equal(color('red'), 'red')
+		console.info(color('red')) // ← red
+		//console.info(color('yellow')) // ← throws a TypeError → Enumeration must have one value of..
+		assert.equal(console.output()[0][1], 'red')
 		assert.throws(() => color('yellow'), {
 			name: "TypeError",
 			message: [
@@ -138,11 +142,12 @@ function testRender() {
 	 * Returns a value if it exists in the list, otherwise returns undefined.
 	 */
 	it('How to use oneOf?', () => {
+		//import { oneOf } from "@nan0web/types"
 		const fn = oneOf("a", "b", "c")
 		console.info(fn("b")) // ← "b"
 		console.info(fn("z")) // ← undefined
-		assert.equal(fn("b"), "b")
-		assert.equal(fn("z"), undefined)
+		assert.equal(console.output()[0][1], "b")
+		assert.equal(console.output()[1][1], undefined)
 	})
 
 	/**
@@ -151,11 +156,12 @@ function testRender() {
 	 * Applies `fn` only if the value is not `undefined`, otherwise returns `undefined`.
 	 */
 	it('How to use undefinedOr(fn)?', () => {
+		//import { undefinedOr } from "@nan0web/types"
 		const fn = undefinedOr((x) => x * 2)
 		console.info(fn(5)) // ← 10
 		console.info(fn(undefined)) // ← undefined
-		assert.equal(fn(5), 10)
-		assert.equal(fn(undefined), undefined)
+		assert.equal(console.output()[0][1], 10)
+		assert.equal(console.output()[1][1], undefined)
 	})
 
 	/**
@@ -164,11 +170,12 @@ function testRender() {
 	 * Applies `fn` only if the value is not `undefined`, otherwise returns `null`.
 	 */
 	it('How to use nullOr(fn)?', () => {
+		//import { nullOr } from "@nan0web/types"
 		const fn = nullOr((x) => x + 1)
 		console.info(fn(1)) // ← 2
 		console.info(fn(undefined)) // ← null
-		assert.equal(fn(1), 2)
-		assert.equal(fn(undefined), null)
+		assert.equal(console.output()[0][1], 2)
+		assert.equal(console.output()[1][1], null)
 	})
 
 	/**
@@ -177,9 +184,10 @@ function testRender() {
 	 * Applies `Fn` to each element of an array.
 	 */
 	it('How to map array with arrayOf(fn)?', () => {
+		//import { arrayOf } from "@nan0web/types"
 		const fn = arrayOf((x) => x.toUpperCase())
-		console.info(fn(["a", "b"])) // ← ["A", "B"]
-		assert.deepEqual(fn(["a", "b"]), ["A", "B"])
+		console.info(fn(["a", "b"])) // ← [ 'A', 'B' ]
+		assert.deepEqual(console.output()[0][1], ["A", "B"])
 	})
 
 	/**
@@ -188,11 +196,12 @@ function testRender() {
 	 * Checks if value is instance of the given type (or primitive).
 	 */
 	it('How to check type with typeOf(String)?', () => {
+		//import { typeOf } from "@nan0web/types"
 		const fn = typeOf(String)
 		console.info(fn("hello")) // ← true
 		console.info(fn(123)) // ← false
-		assert.equal(fn("hello"), true)
-		assert.equal(fn(123), false)
+		assert.equal(console.output()[0][1], true)
+		assert.equal(console.output()[1][1], false)
 	})
 
 	/**
@@ -201,12 +210,13 @@ function testRender() {
 	 * Attempts to return the constructor for a given value.
 	 */
 	it('How to get constructor with functionOf?', () => {
-		console.info(functionOf("hello")) // ← String
-		console.info(functionOf(123)) // ← Number
-		console.info(functionOf(new Date())) // ← Date
-		assert.equal(functionOf("hello"), String)
-		assert.equal(functionOf(123), Number)
-		assert.ok(functionOf(new Date()) instanceof Function)
+		//import { functionOf } from "@nan0web/types"
+		console.info(functionOf("hello")) // ← [Function: String]
+		console.info(functionOf(123)) // ← [Function: Number]
+		console.info(functionOf(new Date())) // ← [Function (anonymous)]
+		assert.equal(console.output()[0][1], String)
+		assert.equal(console.output()[1][1], Number)
+		assert.ok(console.output()[2][1] instanceof Function)
 	})
 
 	/**
@@ -239,8 +249,8 @@ function testRender() {
 		//import { equal } from "@nan0web/types"
 		console.info(equal("a", "a", "b", "b")) // ← true
 		console.info(equal(1, "1")) // ← false
-		assert.equal(equal("a", "a", "b", "b"), true)
-		assert.equal(equal(1, "1"), false)
+		assert.equal(console.output()[0][1], true)
+		assert.equal(console.output()[1][1], false)
 	})
 
 	/**
@@ -256,7 +266,7 @@ function testRender() {
 		class A { x = 9 }
 		const converted = to(Object)(new A())
 		console.info(converted) // ← { x: 9 }
-		assert.deepStrictEqual(converted, { x: 9 })
+		assert.deepStrictEqual(console.output()[0][1], { x: 9 })
 	})
 
 	/**
@@ -266,6 +276,7 @@ function testRender() {
 	 * A base class whose `.toObject()` skips properties with empty values.
 	 */
 	it('How to use NonEmptyObject to filter empty values?', () => {
+		//import { NonEmptyObject } from "@nan0web/types"
 		class B extends NonEmptyObject {
 			name = "Name"
 			emptyValue = ""
@@ -274,7 +285,7 @@ function testRender() {
 		const obj = new B().toObject()
 		console.info(obj) // ← { name: "Name" }
 
-		assert.deepStrictEqual(obj, { name: "Name" })
+		assert.deepStrictEqual(console.output()[0][1], { name: "Name" })
 	})
 
 	/**
@@ -285,12 +296,13 @@ function testRender() {
 	 * including those from prototype chain (like getters).
 	 */
 	it('How to collect everything with to(FullObject)?', () => {
+		//import { to, FullObject } from "@nan0web/types"
 		class A { x = 9 }
 		class B extends A { get y() { return this.x ** 2 } }
 		const obj = to(FullObject)(new B())
 		console.info(obj) // ← { x: 9, y: 81 }
 
-		assert.deepStrictEqual(obj, { x: 9, y: 81 })
+		assert.deepStrictEqual(console.output()[0][1], { x: 9, y: 81 })
 	})
 
 	/**
@@ -300,13 +312,14 @@ function testRender() {
 	 * A helper used via `to(UndefinedObject)` to keep `undefined` values in objects.
 	 */
 	it('How to keep `undefined` in objects via to(UndefinedObject)?', () => {
+		//import { to, UndefinedObject } from "@nan0web/types"
 		const data = { x: 9, y: undefined }
 		const obj = to(UndefinedObject)(data)
 		console.info(obj) // ← { x: 9, y: undefined }
 
-		assert.ok(obj.x === 9)
-		assert.ok('y' in obj)
-		assert.ok(obj.y === undefined)
+		assert.ok(console.output()[0][1].x === 9)
+		assert.ok('y' in console.output()[0][1])
+		assert.ok(console.output()[0][1].y === undefined)
 	})
 
 	/**
@@ -315,14 +328,15 @@ function testRender() {
 	 * Deep clones objects, arrays, Maps, Sets, and custom classes.
 	 */
 	it('How to deeply clone objects?', () => {
+		//import { clone } from "@nan0web/types"
 		const original = { a: { b: [1, 2] } }
 		const copy = clone(original)
-		console.info(copy) // ← { a: { b: [1, 2] } }
+		console.info(copy) // ← { a: { b: [ 1, 2 ] } }
 
-		assert.deepStrictEqual(copy, original)
-		assert.ok(copy !== original)
-		assert.ok(copy.a !== original.a)
-		assert.ok(copy.a.b !== original.a.b)
+		assert.deepStrictEqual(console.output()[0][1], original)
+		assert.ok(console.output()[0][1] !== original)
+		assert.ok(console.output()[0][1].a !== original.a)
+		assert.ok(console.output()[0][1].a.b !== original.a.b)
 	})
 
 	/**
@@ -331,13 +345,14 @@ function testRender() {
 	 * Deeply merges two plain objects or arrays, optionally preserving uniqueness.
 	 */
 	it('How to merge two objects?', () => {
+		//import { merge } from "@nan0web/types"
 		const a = { x: 1, nested: { a: 1 } }
 		const b = { y: 2, nested: { b: 2 } }
 
 		const result = merge(a, b)
-		console.info(result) // ← { x: 1, y: 2, nested: { a: 1, b: 2 } }
+		console.info(result) // ← { x: 1, nested: { a: 1, b: 2 }, y: 2 }
 
-		assert.deepStrictEqual(result, { x: 1, y: 2, nested: { a: 1, b: 2 } })
+		assert.deepStrictEqual(console.output()[0][1], { x: 1, y: 2, nested: { a: 1, b: 2 } })
 	})
 
 	/**
@@ -345,27 +360,28 @@ function testRender() {
 	 * ### `isConstructible(fn)`
 	 * Checks whether a function can be called with `new`.
 	 */
-	it('How check if function is constructible?', () => {
-		assert.equal(isConstructible(class X {}), true)
-		assert.equal(isConstructible(() => {}), false)
+	it('How to check if function is constructible?', () => {
+		//import { isConstructible } from "@nan0web/types"
+		console.info(isConstructible(class X {})) // ← true
+		console.info(isConstructible(() => {})) // ← false
+		assert.equal(console.output()[0][1], true)
+		assert.equal(console.output()[1][1], false)
 	})
 
 	/**
 	 * @docs
 	 * ## Parser & Tree Structures
-	 */
-
-	/**
-	 * @docs
+	 *
 	 * ### `Parser`
 	 * Basic indentation-based document parser: splits rows into `Node` hierarchy.
 	 */
 	it('How to parse indented string with Parser?', () => {
+		//import { Parser } from "@nan0web/types"
 		const parser = new Parser({ tab: "  " })
 		const text = "root\n  child\n    subchild"
 		const tree = parser.decode(text)
 
-		console.info(tree.toString({ trim: true })) // ← "root\n\nchild\n\nsubchild"
+		console.info(tree.toString({ trim: true })) // ← "root\n\n\tchild\n\n\t\tsubchild"
 		assert.ok(tree instanceof Node)
 		assert.ok(tree.children.length === 1)
 		assert.ok(tree.children[0].content === "root")
@@ -378,11 +394,12 @@ function testRender() {
 	 * You can extend it into format-specific nodes (e.g., Markdown AST).
 	 */
 	it('How to build a tree with Node?', () => {
+		//import { Node } from "@nan0web/types"
 		const root = new Node({ content: "root" })
 		const child = new Node({ content: "child" })
 		root.add(child)
 		console.info(String(root)) // ← "root\n\nchild"
-		assert.equal(String(root), "root\n\nchild")
+		assert.equal(console.output()[0][1], "root\n\nchild")
 	})
 
 	/**

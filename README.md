@@ -2,7 +2,7 @@
 
 |[Status](https://github.com/nan0web/monorepo/blob/main/system.md#написання-сценаріїв)|Documentation|Test coverage|Features|Npm version|
 |---|---|---|---|---|
- |🟢 `98.3%` |🧪 [English 🏴󠁧󠁢󠁥󠁮󠁧󠁿](https://github.com/nan0web/types/blob/main/README.md)<br />[Українською 🇺🇦](https://github.com/nan0web/types/blob/main/docs/uk/README.md) |🟢 `90.4%` |✅ d.ts 📜 system.md 🕹️ playground |1.0.0 |
+ |🟢 `98.3%` |🧪 [English 🏴󠁧󠁢󠁥󠁮󠁧󠁿](https://github.com/nan0web/types/blob/main/README.md)<br />[Українською 🇺🇦](https://github.com/nan0web/types/blob/main/docs/uk/README.md) |🟢 `90.4%` |✅ d.ts 📜 system.md 🕹️ playground |1.0.1 |
 
 A minimal, zero-dependency toolkit for managing JavaScript data structures,
 conversions, and type validation. Built for [nan0web philosophy](https://github.com/nan0web/monorepo/blob/main/system.md#nanweb-nan0web),
@@ -51,6 +51,7 @@ Checks if any or all of the arguments match a string or regex pattern.
 
 How to use `match(regex)`?
 ```js
+import { match } from "@nan0web/types"
 const fn = match(/^hello$/)
 console.info(fn("hello", "world")) // ← true
 ```
@@ -61,13 +62,17 @@ or custom validator functions.
 
 How to validate with Enum?
 ```js
+import { Enum } from "@nan0web/types"
 const color = Enum('red', 'green', 'blue')
+console.info(color('red')) // ← red
+console.info(color('yellow')) // ← throws a TypeError → Enumeration must have one value of..
 ```
 ### `oneOf(...args)`
 Returns a value if it exists in the list, otherwise returns undefined.
 
 How to use oneOf?
 ```js
+import { oneOf } from "@nan0web/types"
 const fn = oneOf("a", "b", "c")
 console.info(fn("b")) // ← "b"
 console.info(fn("z")) // ← undefined
@@ -77,6 +82,7 @@ Applies `fn` only if the value is not `undefined`, otherwise returns `undefined`
 
 How to use undefinedOr(fn)?
 ```js
+import { undefinedOr } from "@nan0web/types"
 const fn = undefinedOr((x) => x * 2)
 console.info(fn(5)) // ← 10
 console.info(fn(undefined)) // ← undefined
@@ -86,6 +92,7 @@ Applies `fn` only if the value is not `undefined`, otherwise returns `null`.
 
 How to use nullOr(fn)?
 ```js
+import { nullOr } from "@nan0web/types"
 const fn = nullOr((x) => x + 1)
 console.info(fn(1)) // ← 2
 console.info(fn(undefined)) // ← null
@@ -95,14 +102,16 @@ Applies `Fn` to each element of an array.
 
 How to map array with arrayOf(fn)?
 ```js
+import { arrayOf } from "@nan0web/types"
 const fn = arrayOf((x) => x.toUpperCase())
-console.info(fn(["a", "b"])) // ← ["A", "B"]
+console.info(fn(["a", "b"])) // ← [ 'A', 'B' ]
 ```
 ### `typeOf(Fn)`
 Checks if value is instance of the given type (or primitive).
 
 How to check type with typeOf(String)?
 ```js
+import { typeOf } from "@nan0web/types"
 const fn = typeOf(String)
 console.info(fn("hello")) // ← true
 console.info(fn(123)) // ← false
@@ -112,9 +121,10 @@ Attempts to return the constructor for a given value.
 
 How to get constructor with functionOf?
 ```js
-console.info(functionOf("hello")) // ← String
-console.info(functionOf(123)) // ← Number
-console.info(functionOf(new Date())) // ← Date
+import { functionOf } from "@nan0web/types"
+console.info(functionOf("hello")) // ← [Function: String]
+console.info(functionOf(123)) // ← [Function: Number]
+console.info(functionOf(new Date())) // ← [Function (anonymous)]
 ```
 ### `empty(...values)`
 Checks if any of provided values are considered empty.
@@ -157,6 +167,7 @@ A base class whose `.toObject()` skips properties with empty values.
 
 How to use NonEmptyObject to filter empty values?
 ```js
+import { NonEmptyObject } from "@nan0web/types"
 class B extends NonEmptyObject {
 	name = "Name"
 	emptyValue = ""
@@ -173,6 +184,7 @@ including those from prototype chain (like getters).
 
 How to collect everything with to(FullObject)?
 ```js
+import { to, FullObject } from "@nan0web/types"
 class A { x = 9 }
 class B extends A { get y() { return this.x ** 2 } }
 const obj = to(FullObject)(new B())
@@ -185,6 +197,7 @@ A helper used via `to(UndefinedObject)` to keep `undefined` values in objects.
 
 How to keep `undefined` in objects via to(UndefinedObject)?
 ```js
+import { to, UndefinedObject } from "@nan0web/types"
 const data = { x: 9, y: undefined }
 const obj = to(UndefinedObject)(data)
 console.info(obj) // ← { x: 9, y: undefined }
@@ -195,9 +208,10 @@ Deep clones objects, arrays, Maps, Sets, and custom classes.
 
 How to deeply clone objects?
 ```js
+import { clone } from "@nan0web/types"
 const original = { a: { b: [1, 2] } }
 const copy = clone(original)
-console.info(copy) // ← { a: { b: [1, 2] } }
+console.info(copy) // ← { a: { b: [ 1, 2 ] } }
 
 ```
 ### `merge(target, source, options?)`
@@ -205,32 +219,36 @@ Deeply merges two plain objects or arrays, optionally preserving uniqueness.
 
 How to merge two objects?
 ```js
+import { merge } from "@nan0web/types"
 const a = { x: 1, nested: { a: 1 } }
 const b = { y: 2, nested: { b: 2 } }
 
 const result = merge(a, b)
-console.info(result) // ← { x: 1, y: 2, nested: { a: 1, b: 2 } }
+console.info(result) // ← { x: 1, nested: { a: 1, b: 2 }, y: 2 }
 
 ```
 ### `isConstructible(fn)`
 Checks whether a function can be called with `new`.
 
-How check if function is constructible?
-
+How to check if function is constructible?
+```js
+import { isConstructible } from "@nan0web/types"
+console.info(isConstructible(class X {})) // ← true
+console.info(isConstructible(() => {})) // ← false
+```
 ## Parser & Tree Structures
 
-/**
-@docs
 ### `Parser`
 Basic indentation-based document parser: splits rows into `Node` hierarchy.
 
 How to parse indented string with Parser?
 ```js
+import { Parser } from "@nan0web/types"
 const parser = new Parser({ tab: "  " })
 const text = "root\n  child\n    subchild"
 const tree = parser.decode(text)
 
-console.info(tree.toString({ trim: true })) // ← "root\n\nchild\n\nsubchild"
+console.info(tree.toString({ trim: true })) // ← "root\n\n\tchild\n\n\t\tsubchild"
 ```
 ### `Node`
 Generic tree node that holds content and children.
@@ -238,6 +256,7 @@ You can extend it into format-specific nodes (e.g., Markdown AST).
 
 How to build a tree with Node?
 ```js
+import { Node } from "@nan0web/types"
 const root = new Node({ content: "root" })
 const child = new Node({ content: "child" })
 root.add(child)
