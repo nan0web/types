@@ -24,7 +24,15 @@
 		"test": "node --test",
 		"precommit": "npm test",
 		"prepush": "npm test",
-		"prepare": "husky"
+		"prepare": "husky",
+		"clean": "rm -rf .cache/ && rm -rf dist/",
+		"clean:modules": "rm -rf node_modules",
+		"playground": "node playground/main.js",
+		"test:docs": "node --test src/README.md.js",
+		"test:release": "node --test \"releases/**/*.test.js\"",
+		"test:coverage": "node --experimental-test-coverage --test-coverage-include=\"src/**/*.js\" --test-coverage-exclude=\"src/**/*.test.js\" --test \"src/**/*.test.js\"",
+		"test:coverage:collect": "nan0test coverage",
+		"test:status": "nan0test status"
 	},
 	"keywords": [
 		"nan0",
@@ -41,6 +49,8 @@
 	"license": "ISC",
 	"packageManager": "pnpm@10.11.0",
 	"devDependencies": {
-		"husky": "^9.1.7"
+		"husky": "^9.1.7",
+		"@nan0web/test": "workspace:*",
+		"@nan0web/ui-cli": "workspace:*"
 	}
 }

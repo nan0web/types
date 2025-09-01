@@ -1,174 +1,307 @@
 # @nan0web/types
 
-Universal and flexible system for managing data structures and types in JavaScript applications, based on the philosophy that **zero represents the universe** – the origin of all numbers and possibilities.
+|Package name|[Status](https://github.com/nan0web/monorepo/blob/main/system.md#написання-сценаріїв)|Documentation|Test coverage|Features|Npm version|
+|---|---|---|---|---|---|
+ |[@nan0web/types](https://github.com/nan0web/@nan0web/types/) |🔴 `66.1%` |🧪 [English 🏴󠁧󠁢󠁥󠁮󠁧󠁿](https://github.com/nan0web/@nan0web/types/blob/main/README.md) |🟢 `90.4%` |🕹️ playground |— |
 
-## Features
+A minimal, zero-dependency toolkit for managing JavaScript data structures,
+conversions, and type validation. Built for [nan0 philosophy](https://nan0.dev),
+where zero represents the infinite source (universe), from which emerge meaningful structures.
 
-- **NANO Format Parser/Stringifier**: Simple and strict YAML-like format for structured data storage with support for:
-  - Multiline strings (using `|`)
-  - Numbers with thousand separators (`_`)
-  - Empty objects (`{}`) and arrays (`[]`)
-  - Dates in ISO format
-  - Comments (starting with `# `)
-- **ContainerObject**: Class for managing nested object hierarchies with methods for:
-  - Adding/removing children
-  - Finding elements recursively
-  - Flattening nested structures
-- **Type Conversion Utilities**: Robust tools (`to`, `typeOf`, `functionOf`) to convert between various object representations:
-  - `Object` - Standard JavaScript objects excluding undefined values
-  - `FullObject` - Objects including getters and methods
-  - `NonEmptyObject` - Objects excluding empty values
-  - `UndefinedObject` - Objects preserving undefined values
-  - `ObjectWithAlias` - Objects with property aliasing support
-- **Merge Utility**: Deep merging of objects and arrays with options for uniqueness and nesting control
-- **Clone Utility**: Deep cloning of objects, arrays, and custom class instances with circular reference handling
-- **Validation Helpers**: Includes `Enum`, `match`, `oneOf`, `empty`/`notEmpty` for strong type-safe validation
-- **Pure JavaScript with JSDoc**: Fully typed with clear documentation, no TypeScript required
+This package helps you work safely with types, objects, arrays, NaN0 format documents,
+and basic tree structures like indented texts. It is especially useful in monorepos
+where lightweight, proven, reusable utilities are essential.
+
+This document is available in other languages:
+- [Ukrainian 🇺🇦](./docs/uk/README.md)
 
 ## Installation
 
+How to install with npm?
 ```bash
 npm install @nan0web/types
 ```
 
-## Concepts
-
-- `nan0` - "0 is not a number" representing the universe as the source of all possibilities
-- `rea1` - Denotes subjective reality, since each person's reality differs
-- `g0d` - Represents infinite energy; objective reality exists only when all become one with it
-- Built for composability, minimal memory footprint, high performance and good DX
-
-## Format: NANO
-
-The `.nano` format simplifies data management using clean and human-readable syntax:
-
-```nano
-object:
-  name: John
-  age: 30
-  bio: |
-    Multiline
-    description
-array:
-  - Hello
-  - 123_456_789
-  - true
-  - null
+How to install with pnpm?
+```bash
+pnpm add @nan0web/types
 ```
 
-### Rules
+How to install with yarn?
+```bash
+yarn add @nan0web/types
+```
 
-- All multiline strings begin with `|`
-- Numbers formatted with `_` as thousand separator (e.g., `160_000_500`)
-- Empty objects: `{}`
-- Empty arrays: `[]`
-- Dates in ISO format (`YYYY-MM-DD`) or datetime (`YYYY-MM-DDTHH:mm:ss`)
-- Comments start with `# `
+## Core Concepts
 
-## API Overview
+This package is designed with minimalism and precision:
+- ✅ Fully typed with **JSDoc** and `.d.ts` files
+- 🔁 Supports both sync and async operations
+- 🧠 Built for cognitive clarity: each function has a clear purpose
+- 🌱 No external dependencies
 
-### NANO
+## Usage: Basic Types
 
+### `match(test, options)`
+Checks if any or all of the arguments match a string or regex pattern.
+
+- **Parameters**
+  - `test` (string|RegExp) – Pattern to match against.
+  - `options` (object, optional) – Matching settings.
+    - `caseInsensitive` (boolean) – Default `false`.
+    - `stringFn` (string) – A method like `startsWith`, `includes`.
+    - `method` ("some"|"every") – Whether check one or all args. Default `"some"`.
+
+@example
+const validUrl = match(/^https?:\/\//, { method: 'some' })
+validUrl('https://nan0.dev', 'invalid') // true
+
+How to use `match(regex)`?
 ```js
-import NANO from '@nan0web/types'
-
-const data = NANO.parse('.nano formatted string')
-const nano = NANO.stringify(data)
+const fn = match(/^hello$/)
+console.info(fn("hello", "world")) // ← true
 ```
+### `Enum(...values)`
 
-### ContainerObject
+Validates a value (or array of values) against a list of allowed values
+or custom validator functions.
 
+@example
+const colorValidator = Enum("red", "green", "blue", (val) => typeof val === "string" && val.length > 2)
+colorValidator("red") // red
+colorValidator("purple") // purple
+colorValidator(123) // throws TypeError
+
+How to validate with Enum?
 ```js
-import { ContainerObject } from '@nan0web/types'
-
-class Node extends ContainerObject {}
-const root = new Node({ level: 0 })
-
-root.add(new Node({ level: 1, name: 'child' }))
-root.find(child => child.name === 'child')
-root.recent // last added child recursively
-root.flat() // flatten nested structure to array
+const color = Enum('red', 'green', 'blue')
 ```
+### `oneOf(...args)`
+Returns a value if it exists in the list, otherwise returns undefined.
 
-### Conversion Utilities
+@example
+const fn = oneOf("a", "b", "c")
+assert.strictEqual(fn("a"), "a")
+assert.strictEqual(fn("x"), undefined)
 
+How to use oneOf?
 ```js
-import { to, typeOf, functionOf, FullObject, NonEmptyObject } from '@nan0web/types'
-
-// Convert to standard Object (excluding undefined values)
-to(Object)({ a: 1, b: undefined }) // { a: 1 }
-
-// Convert to FullObject (including getters and methods)
-to(FullObject)(instance) 
-
-// Convert to NonEmptyObject (excluding empty values)
-to(NonEmptyObject)({ a: 1, b: "", c: null }) // { a: 1 }
-
-// Check type
-typeOf(String)("hello") // true
-typeOf(Number)(42) // true
-
-// Get constructor function
-functionOf("hello") // String
-functionOf(42) // Number
+const fn = oneOf("a", "b", "c")
+console.info(fn("b")) // ← "b"
+console.info(fn("z")) // ← undefined
 ```
+### `undefinedOr(fn)`
+Applies `fn` only if the value is not `undefined`, otherwise returns `undefined`.
 
-### Merge and Clone Utilities
-
+How to use undefinedOr(fn)?
 ```js
-import { merge, clone } from '@nan0web/types'
-
-// Deep merge objects
-const target = { a: 1, b: { c: 2 } }
-const source = { b: { d: 3 }, e: 4 }
-merge(target, source) // { a: 1, b: { c: 2, d: 3 }, e: 4 }
-
-// Deep clone objects/arrays with circular reference handling
-const original = { a: 1, b: [2, 3] }
-const copied = clone(original)
+const fn = undefinedOr((x) => x * 2)
+console.info(fn(5)) // ← 10
+console.info(fn(undefined)) // ← undefined
 ```
+### `nullOr(fn)`
+Applies `fn` only if the value is not `undefined`, otherwise returns `null`.
 
-### Validation
-
+How to use nullOr(fn)?
 ```js
-import { Enum, match, oneOf, empty } from '@nan0web/types'
+const fn = nullOr((x) => x + 1)
+console.info(fn(1)) // ← 2
+console.info(fn(undefined)) // ← null
+```
+### `arrayOf(Fn)`
+Applies `Fn` to each element of an array.
 
-// Enumeration validation
-const color = Enum('red', 'blue', 'green')
-color('red') // ✅ 'red'
-color('yellow') // ❌ throws TypeError
+How to map array with arrayOf(fn)?
+```js
+const fn = arrayOf((x) => x.toUpperCase())
+console.info(fn(["a", "b"])) // ← ["A", "B"]
+```
+### `typeOf(Fn)`
+Checks if value is instance of the given type (or primitive).
 
-// Pattern matching
-match(/^hello/i)('Hello World') // ✅ true
-match('test', { caseInsensitive: true, stringFn: "includes" })('This is a TEST') // ✅ true
+How to check type with typeOf(String)?
+```js
+const fn = typeOf(String)
+console.info(fn("hello")) // ← true
+console.info(fn(123)) // ← false
+```
+### `functionOf(value)`
+Attempts to return the constructor for a given value.
 
-// One of values
-oneOf(1, 2, 3)(2) // ✅ 2
-oneOf(1, 2, 3)(4) // ✅ undefined
+How to get constructor with functionOf?
+```js
+console.info(functionOf("hello")) // ← String
+console.info(functionOf(123)) // ← Number
+console.info(functionOf(new Date())) // ← Date
+```
+### `empty(...values)`
+Checks if any of provided values are considered empty.
 
-// Empty checks
-empty("", {}, []) // ✅ true
-empty("hello", [1], { a: 1 }) // ✅ false
+How to check for empty values?
+```js
+import { empty } from "@nan0web/types"
+console.info(empty(undefined)) // ← true
+console.info(empty("")) // ← true
+console.info(empty({})) // ← true
+console.info(empty(null)) // ← true
+console.info(empty([])) // ← true
+console.info(empty(0)) // ← false
+```
+### `equal(...args)`
+Compares pairs of arguments for strict equality (e.g., `equal(a, b, c, d)` → `a === b && c === d`).
+
+How to compare values strictly with equal()?
+```js
+import { equal } from "@nan0web/types"
+console.info(equal("a", "a", "b", "b")) // ← true
+console.info(equal(1, "1")) // ← false
+```
+## Conversions & Utilities
+
+### `to(type)`
+
+Converts values into target type-friendly representations (e.g., `.toObject()` or `.toArray()`).
+
+How to convert using to(Object)?
+```js
+import { to } from "@nan0web/types"
+class A { x = 9 }
+const converted = to(Object)(new A())
+console.info(converted) // ← { x: 9 }
+```
+### NonEmptyObject
+
+A base class whose `.toObject()` skips properties with empty values.
+
+@example
+class B extends NonEmptyObject {
+  name = "Name"
+  emptyValue = ""
+}
+
+const obj = new B().toObject()
+console.log(obj) // { name: "Name" }
+
+How to use NonEmptyObject to filter empty values?
+```js
+class B extends NonEmptyObject {
+	name = "Name"
+	emptyValue = ""
+}
+
+const obj = new B().toObject()
+console.info(obj) // ← { name: "Name" }
+
+```
+### FullObject
+
+A marker class used via `to(FullObject)` to collect all enumerable properties,
+including those from prototype chain (like getters).
+
+How to collect everything with to(FullObject)?
+```js
+class A { x = 9 }
+class B extends A { get y() { return this.x ** 2 } }
+const obj = to(FullObject)(new B())
+console.info(obj) // ← { x: 9, y: 81 }
+
+```
+### UndefinedObject
+
+A helper used via `to(UndefinedObject)` to keep `undefined` values in objects.
+
+How to keep `undefined` in objects via to(UndefinedObject)?
+```js
+const data = { x: 9, y: undefined }
+const obj = to(UndefinedObject)(data)
+console.info(obj) // ← { x: 9, y: undefined }
+
+```
+### `clone(obj)`
+Deep clones objects, arrays, Maps, Sets, and custom classes.
+
+How to deeply clone objects?
+```js
+const original = { a: { b: [1, 2] } }
+const copy = clone(original)
+console.info(copy) // ← { a: { b: [1, 2] } }
+
+```
+### `merge(target, source, options?)`
+Deeply merges two plain objects or arrays, optionally preserving uniqueness.
+
+How to merge two objects?
+```js
+const a = { x: 1, nested: { a: 1 } }
+const b = { y: 2, nested: { b: 2 } }
+
+const result = merge(a, b)
+console.info(result) // ← { x: 1, y: 2, nested: { a: 1, b: 2 } }
+
+```
+### `isConstructible(fn)`
+Checks whether a function can be called with `new`.
+
+How check if function is constructible?
+
+## Parser & Tree Structures
+
+/**
+@docs
+### `Parser`
+Basic indentation-based document parser: splits rows into `Node` hierarchy.
+
+How to parse indented string with Parser?
+```js
+const parser = new Parser({ tab: "  " })
+const text = "root\n  child\n    subchild"
+const tree = parser.decode(text)
+
+console.info(tree.toString({ trim: true })) // ← "root\n\nchild\n\nsubchild"
+```
+### `Node`
+Generic tree node that holds content and children.
+You can extend it into format-specific nodes (e.g., Markdown AST).
+
+@example
+const node = new Node({ content: "Title", indent: 0 })
+node.add(new Node({ content: "Paragraph", indent: 1 }))
+
+How to build a tree with Node?
+```js
+const root = new Node({ content: "root" })
+const child = new Node({ content: "child" })
+root.add(child)
+console.info(String(root)) // ← "root\n\nchild"
+```
+## NANO & NaN0 Formats
+
+These formats provide minimalistic, human-friendly serialization for typed data.
+
+- `NANO` – core implementation
+- `NaN0` – extended with support for date, comments, etc.
+
+/**
+@docs
+## Playground
+
+How to run CLI sandbox?
+```bash
+# To try out examples and play with the library:
+git clone https://github.com/nan0web/types.git
+cd types
+npm install
+npm run playground
 ```
 
-## Philosophy
+## Java•Script
 
-We code not just to automate but to **realize reality** – building systems that mirror the logic of the universe. The `nan0` approach ensures data is not just structured, but metaphysically meaningful. Zero represents the universe that contains infinite possibilities, and we build tools that help developers create from this universal source.
+Uses `d.ts` to provide autocomplete hints.
 
 ## Contributing
 
-By contributing, you accept and agree to the terms in [CONTRIBUTING.md](./CONTRIBUTING.md).
-
-## Testing
-
-Run the test suite with:
-
-```bash
-npm test
-```
-
-Before commits, tests are automatically run to ensure code quality.
+How to contribute? - [check here](./CONTRIBUTING.md)
 
 ## License
 
-[ISC](./LICENSE)
+How to license? - [ISC LICENSE](./LICENSE) file.

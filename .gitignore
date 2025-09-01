@@ -1,4 +1,5 @@
-chat/
-coverage/
-node_modules/
-me.md
+/.datasets/
+/.coverage/
+/node_modules/
+/chat/
+/me.md

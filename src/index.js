@@ -393,7 +393,7 @@ export function Enum(...args) {
  */
 export function isConstructible(fn) {
 	// Classes and constructor functions have a non-empty prototype.
-	return typeof fn === "function" && fn.prototype && fn.prototype !== Object.prototype
+	return (typeof fn === "function") && Boolean(fn.prototype) && fn.prototype !== Object.prototype
 }
 
 
