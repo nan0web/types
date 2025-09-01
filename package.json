@@ -19,15 +19,23 @@
 			"import": "./src/*.js"
 		}
 	},
+	"files": [
+		"src/",
+		"types/",
+		"package.json",
+		"README.md"
+	],
 	"scripts": {
 		"build": "tsc",
-		"test": "node --test",
+		"clean": "rm -rf .cache/ && rm -rf dist/",
+		"clean:modules": "rm -rf node_modules",
 		"precommit": "npm test",
 		"prepush": "npm test",
 		"prepare": "husky",
-		"clean": "rm -rf .cache/ && rm -rf dist/",
-		"clean:modules": "rm -rf node_modules",
+		"prepublishOnly": "npm test && npm run build",
 		"playground": "node playground/main.js",
+		"release": "nan0release publish",
+		"test": "node --test",
 		"test:docs": "node --test src/README.md.js",
 		"test:release": "node --test \"releases/**/*.test.js\"",
 		"test:coverage": "node --experimental-test-coverage --test-coverage-include=\"src/**/*.js\" --test-coverage-exclude=\"src/**/*.test.js\" --test \"src/**/*.test.js\"",
@@ -50,6 +58,7 @@
 	"packageManager": "pnpm@10.11.0",
 	"devDependencies": {
 		"husky": "^9.1.7",
+		"@nan0web/release": "workspace:*",
 		"@nan0web/test": "workspace:*",
 		"@nan0web/ui-cli": "workspace:*"
 	}
