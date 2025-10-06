@@ -1,10 +1,10 @@
-export default ContainerObject;
 /**
- * Represents a generic hierarchical container.
- *
- * @class ContainerObject
+ * @typedef {{
+ *   level?: number,
+ *   children?: ContainerObject[],
+ * }} ContainerObjectArgs
  */
-declare class ContainerObject {
+export default class ContainerObject {
     /**
      * Factory method that returns an existing instance or creates a new one.
      *
@@ -13,30 +13,26 @@ declare class ContainerObject {
      */
     static from(props?: object | ContainerObject): ContainerObject;
     /**
-     * @param {object} props
-     * @param {Array} [props.children=[]]
-     * @param {number} [props.level=0]
+     * @param {ContainerObjectArgs} [options]
      */
-    constructor(props?: {
-        children?: any[] | undefined;
-        level?: number | undefined;
-    });
-    /** @type {Array} */
-    children: any[];
+    constructor(options?: ContainerObjectArgs | undefined);
     /** @type {number} */
     level: number;
+    /** @type {ContainerObject[]} */
+    children: ContainerObject[];
     /**
      * Returns the most recent (deepest) container.
      *
-     * @returns {ContainerObject}
+     * @returns {ContainerObject | null}
      */
-    get recent(): ContainerObject;
+    get recent(): ContainerObject | null;
     /**
      * Adds element to the container.
      * @param {*} element
      * @returns {ContainerObject}
      */
     add(element: any): ContainerObject;
+    _updateLevel(): false | undefined;
     /**
      * Removes the element from the container.
      * @param {*} element
@@ -49,9 +45,9 @@ declare class ContainerObject {
      *
      * @param {(v:any)=>boolean} filter
      * @param {boolean} [recursively=false]
-     * @returns {*}
+     * @returns {ContainerObject | null}
      */
-    find(filter?: (v: any) => boolean, recursively?: boolean | undefined): any;
+    find(filter?: (v: any) => boolean, recursively?: boolean | undefined): ContainerObject | null;
     /**
      * Flattens the tree into an array.
      *
@@ -84,3 +80,7 @@ declare class ContainerObject {
      */
     asyncMap(callback: (value: ContainerObject, index: number, arr: ContainerObject[]) => Promise<any[]>, recursively?: boolean | undefined): Promise<any[]>;
 }
+export type ContainerObjectArgs = {
+    level?: number;
+    children?: ContainerObject[];
+};

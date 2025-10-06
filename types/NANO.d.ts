@@ -8,10 +8,9 @@ declare class NANO {
     static VALUE_DELIMITER: string[];
     static COMMENT_START: string;
     /**
-     * Parses the NANO format into an object
-     * @throws {Error} If invalid format
+     * Parses a NANO format string into a JavaScript object or value.
      * @param {string} input - Input in NANO format
-     * @returns {any} - Parsed JavaScript object
+     * @returns {any} - Parsed JavaScript object or value
      */
     static parse(input: string): any;
     /**

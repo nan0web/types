@@ -20,5 +20,13 @@ declare class NaN0 {
      * @param {*} input - Input object to stringify
      * @returns {string} - NaN0 formatted string
      */
-    static stringify(input: any): string;
+    static stringify0(input: any): string;
+    /**
+ * Stringifies any input object into .NaN0 format
+ * @param {*} input - Input object to stringify
+ * @param {number} indentLevel - Current indentation level
+ * @returns {string} - NaN0 formatted string
+ */
+    static stringify(input: any, indentLevel?: number): string;
+    static formatValue(input: any): any;
 }

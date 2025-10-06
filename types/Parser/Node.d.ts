@@ -14,6 +14,6 @@ declare class Node extends ContainerObject {
     toString({ trim, tab }?: {
         trim?: boolean | undefined;
         tab?: string | undefined;
-    }): string;
+    }): any;
 }
 import ContainerObject from "../Object/ContainerObject.js";

@@ -107,6 +107,10 @@ class NaN0 {
 			return NaN0.TAB.repeat(indentLevel) + NaN0.formatValue(input)
 		}
 	}
+
+	static formatValue(input) {
+		return input
+	}
 }
 
 export default NaN0
