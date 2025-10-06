@@ -21,6 +21,7 @@ export default class ContainerObject {
 		this.children = children.map(child => {
 			if (child instanceof ContainerObject) {
 				child.level = this.level + 1
+				child._updateLevel()
 				return child
 			}
 			return ContainerObject.from(child)
@@ -57,11 +58,16 @@ export default class ContainerObject {
 		return this
 	}
 
+	/**
+	 * Updates level for all nested children recursively.
+	 * @private
+	 */
 	_updateLevel() {
-		if (!this.children.length) return false
 		for (const child of this.children) {
-			child.level = this.level + 1
-			child._updateLevel()
+			if (child instanceof ContainerObject) {
+				child.level = this.level + 1
+				child._updateLevel()
+			}
 		}
 	}
 

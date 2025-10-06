@@ -81,4 +81,30 @@ describe('Node', () => {
 		const expectedString = 'Root\nChild\nGrandchild'
 		assert.strictEqual(node.toString({ trim: true }), expectedString)
 	})
+
+	it("should properly add levels", () => {
+		const node = new Node({
+			content: "Root",
+			children: [
+				new Node({ content: "Child", children: [ new Node({ content: "Grandchild" }) ] }),
+			]
+		})
+		assert.deepStrictEqual(node.flat().map(n => n.level), [0, 1, 2])
+	})
+
+	it('should find children matching a condition with grandchilren before children', () => {
+		const container = new Node({ content: "container" })
+		const child1 = new Node({ content: "child1" })
+		const child2 = new Node({ content: "child2" })
+		const grandChild1 = new Node({ content: "grandChild1" })
+		const grandChild2 = new Node({ content: "grandChild2" })
+
+		child1.add(grandChild1)
+		child2.add(grandChild2)
+		container.add(child1).add(child2)
+
+		const found = container.find(node => node.level === 2, true)
+		assert.ok(found)
+		assert.ok(found === grandChild1 || found === grandChild2)
+	})
 })

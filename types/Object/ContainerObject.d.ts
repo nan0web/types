@@ -32,7 +32,11 @@ export default class ContainerObject {
      * @returns {ContainerObject}
      */
     add(element: any): ContainerObject;
-    _updateLevel(): false | undefined;
+    /**
+     * Updates level for all nested children recursively.
+     * @private
+     */
+    private _updateLevel;
     /**
      * Removes the element from the container.
      * @param {*} element

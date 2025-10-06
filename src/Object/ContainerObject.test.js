@@ -89,6 +89,21 @@ describe('ContainerObject', () => {
 		assert.ok(found === grandChild1 || found === grandChild2)
 	})
 
+	it('should find children matching a condition with grandchilren via constructor', () => {
+		const container = new ContainerObject({
+			children: [
+				new ContainerObject({
+					children: [new ContainerObject()]
+				}),
+				new ContainerObject({
+					children: [new ContainerObject()]
+				})
+			]
+		})
+		const result = container.flat().map(c => c.level)
+		assert.deepStrictEqual(result, [0, 1, 2, 1, 2])
+	})
+
 	it('should flatten all nested children', () => {
 		const root = new ContainerObject()
 		const child1 = new ContainerObject()
