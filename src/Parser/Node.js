@@ -31,8 +31,8 @@ class Node extends ContainerObject {
 		const prefix = trim ? "" : tab.repeat(this.indent)
 		return [
 			prefix + this.content,
-			...this.children.map(String),
-		].join("\n\n")
+			...this.children.map(c => c.toString({ trim, tab })),
+		].join("\n")
 	}
 }
 

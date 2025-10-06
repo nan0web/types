@@ -70,8 +70,42 @@ class NaN0 {
 	 * @param {*} input - Input object to stringify
 	 * @returns {string} - NaN0 formatted string
 	 */
-	static stringify(input) {
+	static stringify0(input) {
 		return NANO.stringify(input)
+	}
+
+	/**
+ * Stringifies any input object into .NaN0 format
+ * @param {*} input - Input object to stringify
+ * @param {number} indentLevel - Current indentation level
+ * @returns {string} - NaN0 formatted string
+ */
+	static stringify(input, indentLevel = 0) {
+		if (Array.isArray(input)) {
+			if (input.length === 0) {
+				return NaN0.TAB.repeat(indentLevel) + NaN0.EMPTY_ARRAY
+			} else {
+				const lines = [NaN0.TAB.repeat(indentLevel) + NaN0.EMPTY_ARRAY]
+				for (const item of input) {
+					const itemStr = NaN0.stringify(item, indentLevel + 1)
+					lines.push(itemStr)
+				}
+				return lines.join(NaN0.NEW_LINE)
+			}
+		} else if (typeof input === 'object' && input !== null) {
+			if (Object.keys(input).length === 0) {
+				return NaN0.TAB.repeat(indentLevel) + NaN0.EMPTY_OBJECT
+			} else {
+				const lines = [NaN0.TAB.repeat(indentLevel) + NaN0.EMPTY_OBJECT]
+				for (const [key, value] of Object.entries(input)) {
+					const valueStr = NaN0.stringify(value, indentLevel + 1)
+					lines.push(NaN0.TAB.repeat(indentLevel + 1) + key + ": " + valueStr)
+				}
+				return lines.join(NaN0.NEW_LINE)
+			}
+		} else {
+			return NaN0.TAB.repeat(indentLevel) + NaN0.formatValue(input)
+		}
 	}
 }
 

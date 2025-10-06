@@ -1,8 +1,6 @@
 # @nan0web/types
 
-|[Status](https://github.com/nan0web/monorepo/blob/main/system.md#написання-сценаріїв)|Documentation|Test coverage|Features|Npm version|
-|---|---|---|---|---|
- |🟢 `98.3%` |🧪 [English 🏴󠁧󠁢󠁥󠁮󠁧󠁿](https://github.com/nan0web/types/blob/main/README.md)<br />[Українською 🇺🇦](https://github.com/nan0web/types/blob/main/docs/uk/README.md) |🟢 `90.4%` |✅ d.ts 📜 system.md 🕹️ playground |1.0.1 |
+<!-- %PACKAGE_STATUS% -->
 
 A minimal, zero-dependency toolkit for managing JavaScript data structures,
 conversions, and type validation. Built for [nan0web philosophy](https://github.com/nan0web/monorepo/blob/main/system.md#nanweb-nan0web),
@@ -286,8 +284,8 @@ Uses `d.ts` to provide autocomplete hints.
 
 ## Contributing
 
-How to contribute? - [check here](https://github.com/nan0web/types/blob/main/CONTRIBUTING.md)
+How to contribute? - [check here]($pkgURL/blob/main/CONTRIBUTING.md)
 
 ## License
 
-How to license? - [ISC LICENSE](https://github.com/nan0web/types/blob/main/LICENSE) file.
+How to license? - [ISC LICENSE]($pkgURL/blob/main/LICENSE) file.

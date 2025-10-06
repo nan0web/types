@@ -48,11 +48,11 @@ class NANO {
 	static VALUE_DELIMITER = [": ", ":\n"]
 	static COMMENT_START = "# "
 
+
 	/**
-	 * Parses the NANO format into an object
-	 * @throws {Error} If invalid format
+	 * Parses a NANO format string into a JavaScript object or value.
 	 * @param {string} input - Input in NANO format
-	 * @returns {any} - Parsed JavaScript object
+	 * @returns {any} - Parsed JavaScript object or value
 	 */
 	static parse(input) {
 		const rows = String(input).split(NANO.NEW_LINE)
@@ -63,11 +63,11 @@ class NANO {
 			const row = rows[i]
 			if (!row || row.trim().startsWith(NANO.COMMENT_START)) continue
 
-			const indentLevel = (row.length - row.trimLeft().length) / NANO.TAB.length
+			const indentLevel = Math.floor((row.length - row.trimLeft().length) / NANO.TAB.length)
 			const trimmedRow = row.trim()
 
 			// Adjust stack to current indent level
-			while (stack.length > indentLevel) {
+			while (stack.length > 0 && stack[stack.length - 1].indent >= indentLevel) {
 				stack.pop()
 			}
 
@@ -86,22 +86,25 @@ class NANO {
 					const parentContext = stack[stack.length - 1]
 					if (parentContext.type === 'array') {
 						parentContext.data.push(parsedValue)
-					} else if (parentContext.type === 'objectProperty') {
-						if (Array.isArray(parentContext.parent)) {
-							parentContext.parent[parentContext.index || ""] = parsedValue
-						} else {
-							parentContext.parent[parentContext.key || ""] = parsedValue
+					} else if (parentContext.type === 'object') {
+						const key = parentContext.lastKey
+						if (key !== undefined) {
+							if (Array.isArray(parentContext.data[key])) {
+								parentContext.data[key].push(parsedValue)
+							} else {
+								parentContext.data[key] = [parsedValue]
+							}
 						}
 					}
 				}
 
-				// Push array item to stack only if it's an object or array
-				if (typeof parsedValue === 'object' && parsedValue !== null) {
+				// Push array item to stack only if it's an object
+				if (typeof parsedValue === 'object' && parsedValue !== null && !Array.isArray(parsedValue)) {
 					stack.push({
-						type: 'arrayItem',
+						type: 'object',
 						data: parsedValue,
+						indent: indentLevel,
 						parent: stack.length === 0 ? root : stack[stack.length - 1].data,
-						index: stack.length === 0 ? root.length - 1 : stack[stack.length - 1].data.length - 1
 					})
 				}
 			} else if (trimmedRow.includes(":")) {
@@ -110,59 +113,61 @@ class NANO {
 				const key = trimmedRow.slice(0, delimiterIndex).trim()
 				let value = trimmedRow.slice(delimiterIndex + 1).trim()
 
-				// Handle special cases like multiline strings
+				// Handle multiline values
 				if (value === NANO.MULTILINE_START) {
 					const multilineLines = []
 					let j = i + 1
+					// Collect subsequent indented lines
 					while (j < rows.length) {
 						const nextRow = rows[j]
 						if (!nextRow) {
 							j++
 							continue
 						}
-						const nextIndentLevel = (nextRow.length - nextRow.trimLeft().length) / NANO.TAB.length
+						const nextIndentLevel = Math.floor((nextRow.length - nextRow.trimLeft().length) / NANO.TAB.length)
 						if (nextIndentLevel > indentLevel) {
-							multilineLines.push(nextRow.slice((indentLevel + 1) * NANO.TAB.length))
+							// Ensure proper indentation (one level deeper)
+							if (nextIndentLevel === indentLevel + 1) {
+								multilineLines.push(nextRow.trimStart())
+							} else {
+								// If deeper than one level, we've gone too far
+								break
+							}
 							j++
 						} else {
 							break
 						}
 					}
 					value = multilineLines.join(NANO.NEW_LINE)
-					i = j - 1 // Skip processed multiline rows
+					i = j - 1 // Skip processed rows
 				}
 
-				const parsedValue = value === '' ? {} : NANO.parseValue(value)
+				const parsedValue = value === "" ? {} : NANO.parseValue(value)
 
 				if (stack.length === 0) {
-					// Top level object property
+					// Top level object
 					if (!root) {
 						root = {}
 					}
 					root[key] = parsedValue
 					if (typeof parsedValue === 'object' && parsedValue !== null) {
-						stack.push({ type: 'objectProperty', data: parsedValue, parent: root, key: key })
+						stack.push({ type: 'object', data: root[key], indent: indentLevel, lastKey: key })
 					}
 				} else {
 					const parentContext = stack[stack.length - 1]
 					if (parentContext.type === 'object') {
 						parentContext.data[key] = parsedValue
 						if (typeof parsedValue === 'object' && parsedValue !== null) {
-							stack.push({ type: 'objectProperty', data: parsedValue, parent: parentContext.data, key: key })
+							stack.push({ type: 'object', data: parentContext.data[key], indent: indentLevel, lastKey: key })
+						} else {
+							parentContext.lastKey = key
 						}
 					} else if (parentContext.type === 'array') {
+						// Create an object from the key-value pair and add to array
 						const obj = { [key]: parsedValue }
 						parentContext.data.push(obj)
-						stack.push({ type: 'array', data: parentContext.data })
-						stack.push({ type: 'object', data: obj })
 						if (typeof parsedValue === 'object' && parsedValue !== null) {
-							stack.push({ type: 'objectProperty', data: parsedValue, parent: obj, key: key })
-						}
-					} else if (parentContext.type === 'arrayItem') {
-						// Handle nested objects in arrays
-						parentContext.parent[parentContext.index][key] = parsedValue
-						if (typeof parsedValue === 'object' && parsedValue !== null) {
-							stack.push({ type: 'objectProperty', data: parsedValue, parent: parentContext.parent[parentContext.index], key: key })
+							stack.push({ type: 'object', data: obj, indent: indentLevel, lastKey: key })
 						}
 					}
 				}
@@ -172,26 +177,26 @@ class NANO {
 					root = newArray
 				} else {
 					const parentContext = stack[stack.length - 1]
-					if (parentContext.type === 'array') {
+					if (parentContext.type === 'object' && parentContext.lastKey !== undefined) {
+						parentContext.data[parentContext.lastKey] = newArray
+					} else if (parentContext.type === 'array') {
 						parentContext.data.push(newArray)
-					} else if (parentContext.type === 'objectProperty') {
-						parentContext.parent[parentContext.key || ""] = newArray
 					}
 				}
-				stack.push({ type: 'array', data: newArray })
+				stack.push({ type: 'array', data: newArray, indent: indentLevel })
 			} else if (trimmedRow === NANO.EMPTY_OBJECT) {
 				const newObject = {}
 				if (stack.length === 0) {
 					root = newObject
 				} else {
 					const parentContext = stack[stack.length - 1]
-					if (parentContext.type === 'array') {
+					if (parentContext.type === 'object' && parentContext.lastKey !== undefined) {
+						parentContext.data[parentContext.lastKey] = newObject
+					} else if (parentContext.type === 'array') {
 						parentContext.data.push(newObject)
-					} else if (parentContext.type === 'objectProperty') {
-						parentContext.parent[parentContext.key || ""] = newObject
 					}
 				}
-				stack.push({ type: 'object', data: newObject })
+				stack.push({ type: 'object', data: newObject, indent: indentLevel })
 			} else if (trimmedRow !== '') {
 				// Handle scalar values at root level
 				if (stack.length === 0) {
@@ -227,24 +232,15 @@ class NANO {
 			if (input.length === 0) {
 				return NANO.TAB.repeat(indentLevel) + NANO.EMPTY_ARRAY
 			} else {
-				const lines = [NANO.TAB.repeat(indentLevel) + NANO.EMPTY_ARRAY]
+				const lines = []
 				for (const item of input) {
 					if (typeof item === 'object' && item !== null) {
-						// Handle objects in arrays
-						const objLines = []
-						for (const [key, value] of Object.entries(item)) {
-							const indentedValue = NANO.stringify(value, indentLevel + 2)
-							if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-								objLines.push(NANO.TAB.repeat(indentLevel + 1) + "- " + key + ":")
-								objLines.push(indentedValue)
-							} else {
-								objLines.push(NANO.TAB.repeat(indentLevel + 1) + "- " + key + ": " + NANO.formatValue(value))
-							}
-						}
-						lines.push(...objLines)
+						// Handle objects in arrays - correct nested indentation
+						const nestedLines = NANO.stringify(item, indentLevel + 1)
+						lines.push(NANO.TAB.repeat(indentLevel) + "- " + nestedLines)
 					} else {
 						// Handle scalar values in arrays
-						lines.push(NANO.TAB.repeat(indentLevel + 1) + "- " + NANO.formatValue(item))
+						lines.push(NANO.TAB.repeat(indentLevel) + "- " + NANO.formatValue(item))
 					}
 				}
 				return lines.join(NANO.NEW_LINE)
@@ -255,18 +251,20 @@ class NANO {
 			} else {
 				const lines = []
 				for (const [key, value] of Object.entries(input)) {
-					const indentedValue = NANO.stringify(value, indentLevel + 1)
+					const nestedIndent = indentLevel + 1
 					if (typeof value === 'object' && value !== null) {
 						if (Array.isArray(value)) {
 							if (value.length === 0) {
 								lines.push(NANO.TAB.repeat(indentLevel) + key + ": " + NANO.EMPTY_ARRAY)
 							} else {
 								lines.push(NANO.TAB.repeat(indentLevel) + key + ":")
-								lines.push(indentedValue)
+								const nestedArray = NANO.stringify(value, nestedIndent)
+								lines.push(nestedArray)
 							}
 						} else {
 							lines.push(NANO.TAB.repeat(indentLevel) + key + ":")
-							lines.push(indentedValue)
+							const nestedObject = NANO.stringify(value, nestedIndent)
+							lines.push(nestedObject)
 						}
 					} else {
 						lines.push(NANO.TAB.repeat(indentLevel) + key + ": " + NANO.formatValue(value))

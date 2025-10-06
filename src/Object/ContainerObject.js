@@ -1,47 +1,68 @@
 /**
- * Represents a generic hierarchical container.
- *
- * @class ContainerObject
+ * @typedef {{
+ *   level?: number,
+ *   children?: ContainerObject[],
+ * }} ContainerObjectArgs
  */
-class ContainerObject {
-	/** @type {Array} */
-	children
+
+export default class ContainerObject {
 	/** @type {number} */
-	level
+	level = 0
+
+	/** @type {ContainerObject[]} */
+	children = []
 
 	/**
-	 * @param {object} props
-	 * @param {Array} [props.children=[]]
-	 * @param {number} [props.level=0]
+	 * @param {ContainerObjectArgs} [options]
 	 */
-	constructor(props = {}) {
-		const {
-			children = [],
-			level = 0
-		} = props
-		this.children = children
-		this.level = level
+	constructor(options = {}) {
+		const { level = 0, children = [] } = options
+		this.level = Number(level)
+		this.children = children.map(child => {
+			if (child instanceof ContainerObject) {
+				child.level = this.level + 1
+				return child
+			}
+			return ContainerObject.from(child)
+		})
 	}
 
 	/**
 	 * Returns the most recent (deepest) container.
 	 *
-	 * @returns {ContainerObject}
+	 * @returns {ContainerObject | null}
 	 */
 	get recent() {
-		const arr = this.flat()
-		if (1 === arr.length) return this
-		return arr[arr.length - 1].recent
+		if (this.children.length === 0) return null
+		const lastChild = this.children[this.children.length - 1]
+		if (lastChild instanceof ContainerObject) {
+			const rec = lastChild.recent
+			return rec || lastChild
+		}
+		return null
 	}
 
 	/**
 	 * Adds element to the container.
 	 * @param {*} element
-	 * @returns {this}
+	 * @returns {ContainerObject}
 	 */
 	add(element) {
+		if (!(element instanceof ContainerObject)) {
+			element = ContainerObject.from(element)
+		}
+		element.level = this.level + 1
 		this.children.push(element)
+		element._updateLevel()
 		return this
+	}
+
+	_updateLevel() {
+		if (!this.children.length) return false
+		for (const child of this.children) {
+			child.level = this.level + 1
+			child._updateLevel()
+		}
 	}
 
 	/**
@@ -64,21 +85,16 @@ class ContainerObject {
 	 *
 	 * @param {(v:any)=>boolean} filter
 	 * @param {boolean} [recursively=false]
-	 * @returns {*}
+	 * @returns {ContainerObject | null}
 	 */
 	find(filter = () => true, recursively = false) {
-		const elements = this.children
 		if (recursively) {
-			for (const element of elements) {
-				if (element instanceof ContainerObject) {
-					const found = element.find(filter, true)
-					if (found) {
-						return found
-					}
-				}
+			for (const child of this.flat()) {
+				if (filter(child)) return child
 			}
+			return null
 		}
-		return elements.find(filter)
+		return this.children.find(filter) || null
 	}
 
 	/**
@@ -87,12 +103,11 @@ class ContainerObject {
 	 * @returns {ContainerObject[]}
 	 */
 	flat() {
+		/** @type {ContainerObject[]} */
 		const result = [this]
-		const elements = this.children
-		for (const element of elements) {
-			if (element instanceof ContainerObject) {
-				// @ts-ignore
-				result.push(...element.flat())
+		for (const child of this.children) {
+			if (child instanceof ContainerObject) {
+				result.push(...child.flat())
 			}
 		}
 		return result
@@ -125,10 +140,8 @@ class ContainerObject {
 	 */
 	map(callback, recursively = false) {
 		if (recursively) {
-			// @ts-ignore
 			return this.flat().map(callback)
 		}
-		// @ts-ignore
 		return this.children.map(callback)
 	}
 
@@ -141,10 +154,8 @@ class ContainerObject {
 	 */
 	async asyncMap(callback, recursively = false) {
 		if (recursively) {
-			// @ts-ignore
 			return Promise.all(this.flat().map(callback))
 		}
-		// @ts-ignore
 		return Promise.all(this.children.map(callback))
 	}
 
@@ -156,8 +167,6 @@ class ContainerObject {
 	 */
 	static from(props) {
 		if (props instanceof ContainerObject) return props
-		return new this(props)
+		return new this({ ...props })
 	}
 }
-
-export default ContainerObject

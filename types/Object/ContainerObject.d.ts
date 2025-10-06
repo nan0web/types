@@ -34,9 +34,9 @@ declare class ContainerObject {
     /**
      * Adds element to the container.
      * @param {*} element
-     * @returns {this}
+     * @returns {ContainerObject}
      */
-    add(element: any): this;
+    add(element: any): ContainerObject;
     /**
      * Removes the element from the container.
      * @param {*} element
