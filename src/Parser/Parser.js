@@ -113,6 +113,14 @@ class Parser {
 			return `${line}${this.eol}${childLines}`
 	}
 
+	/**
+	 * @param {Node} node
+	 * @returns {string}
+	 */
+	stringify(node) {
+		return node.toString({ tab: this.tab, eol: this.eol })
+	}
+
 	static findTab(str, tabs = [4, 2, "\t"], eol = "\n") {
 		const arr = str.split(eol)
 		const map = new Map(

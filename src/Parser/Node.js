@@ -27,12 +27,12 @@ class Node extends ContainerObject {
 		this.indent = Number(indent)
 	}
 
-	toString({ trim = false, tab = "\t" } = {}) {
+	toString({ trim = false, tab = "\t", eol = "\n" } = {}) {
 		const prefix = trim ? "" : tab.repeat(this.indent)
 		return [
 			prefix + this.content,
 			...this.children.map(c => c.toString({ trim, tab })),
-		].join("\n")
+		].join(eol)
 	}
 }
 

@@ -55,5 +55,10 @@ declare class Parser {
     encode(node: Node, options?: {
         indent?: number | undefined;
     }): string;
+    /**
+     * @param {Node} node
+     * @returns {string}
+     */
+    stringify(node: Node): string;
 }
 import Node from "./Node.js";

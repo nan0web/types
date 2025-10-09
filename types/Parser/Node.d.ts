@@ -11,9 +11,10 @@ declare class Node extends ContainerObject {
     children: Node[];
     /** @type {number} */
     indent: number;
-    toString({ trim, tab }?: {
+    toString({ trim, tab, eol }?: {
         trim?: boolean | undefined;
         tab?: string | undefined;
+        eol?: string | undefined;
     }): any;
 }
 import ContainerObject from "../Object/ContainerObject.js";
