@@ -398,8 +398,8 @@ function testRender() {
 		const root = new Node({ content: "root" })
 		const child = new Node({ content: "child" })
 		root.add(child)
-		console.info(String(root)) // ← "root\n\nchild"
-		assert.equal(console.output()[0][1], "root\n\nchild")
+		console.info(String(root)) // ← "root\nchild"
+		assert.equal(console.output()[0][1], "root\nchild")
 	})
 
 	/**

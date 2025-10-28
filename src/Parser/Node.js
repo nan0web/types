@@ -27,6 +27,13 @@ class Node extends ContainerObject {
 		this.indent = Number(indent)
 	}
 
+	/**
+	 * @param {object} [input]
+	 * @param {boolean} [input.trim=false]
+	 * @param {string} [input.tab="\t"]
+	 * @param {string} [input.eol="\n"]
+	 * @returns
+	 */
 	toString({ trim = false, tab = "\t", eol = "\n" } = {}) {
 		const prefix = trim ? "" : tab.repeat(this.indent)
 		return [

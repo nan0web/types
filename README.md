@@ -1,6 +1,8 @@
 # @nan0web/types
 
-<!-- %PACKAGE_STATUS% -->
+|[Status](https://github.com/nan0web/monorepo/blob/main/system.md#написання-сценаріїв)|Documentation|Test coverage|Features|Npm version|
+|---|---|---|---|---|
+ |🟢 `98.0%` |🧪 [English 🏴󠁧󠁢󠁥󠁮󠁧󠁿](https://github.com/nan0web/types/blob/main/README.md)<br />[Українською 🇺🇦](https://github.com/nan0web/types/blob/main/docs/uk/README.md) |🟡 `88.8%` |✅ d.ts 📜 system.md 🕹️ playground |1.0.2 |
 
 A minimal, zero-dependency toolkit for managing JavaScript data structures,
 conversions, and type validation. Built for [nan0web philosophy](https://github.com/nan0web/monorepo/blob/main/system.md#nanweb-nan0web),
@@ -258,7 +260,7 @@ import { Node } from "@nan0web/types"
 const root = new Node({ content: "root" })
 const child = new Node({ content: "child" })
 root.add(child)
-console.info(String(root)) // ← "root\n\nchild"
+console.info(String(root)) // ← "root\nchild"
 ```
 ## NANO & NaN0 Formats
 
@@ -284,8 +286,8 @@ Uses `d.ts` to provide autocomplete hints.
 
 ## Contributing
 
-How to contribute? - [check here]($pkgURL/blob/main/CONTRIBUTING.md)
+How to contribute? - [check here](https://github.com/nan0web/types/blob/main/CONTRIBUTING.md)
 
 ## License
 
-How to license? - [ISC LICENSE]($pkgURL/blob/main/LICENSE) file.
+How to license? - [ISC LICENSE](https://github.com/nan0web/types/blob/main/LICENSE) file.

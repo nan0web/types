@@ -20,10 +20,9 @@
 		}
 	},
 	"files": [
-		"src/",
-		"types/",
-		"package.json",
-		"README.md"
+		"src/**/*.js",
+		"!src/**/*.test.js",
+		"types/**/*.d.ts"
 	],
 	"scripts": {
 		"build": "tsc",

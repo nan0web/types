@@ -11,10 +11,17 @@ declare class Node extends ContainerObject {
     children: Node[];
     /** @type {number} */
     indent: number;
+    /**
+     * @param {object} [input]
+     * @param {boolean} [input.trim=false]
+     * @param {string} [input.tab="\t"]
+     * @param {string} [input.eol="\n"]
+     * @returns
+     */
     toString({ trim, tab, eol }?: {
         trim?: boolean | undefined;
         tab?: string | undefined;
         eol?: string | undefined;
-    }): any;
+    } | undefined): any;
 }
 import ContainerObject from "../Object/ContainerObject.js";
