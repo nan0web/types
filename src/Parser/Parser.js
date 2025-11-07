@@ -9,7 +9,7 @@ import Node from "./Node.js"
  * Concrete parsers (NaN0, Markdown, …) inherit from it and
  * transform the generic tree into their own domain objects.
  */
-class Parser {
+export default class Parser {
 	/** default line‑break & tab characters – override in ctor if you need something else */
 	static EOL = "\n"
 	static TAB = "  "
@@ -138,5 +138,3 @@ class Parser {
 		return entries[0]?.[0] ?? "\t"
 	}
 }
-
-export default Parser

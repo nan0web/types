@@ -10,7 +10,7 @@ import ContainerObject from "../Object/ContainerObject.js"
  * ──  Generic tree node that every format will start from
  * ──  { content:string, children:Array<Node> }
  */
-class Node extends ContainerObject {
+export default class Node extends ContainerObject {
 	/** @type {string} */
 	content
 	/** @type {Node[]} */
@@ -28,6 +28,17 @@ class Node extends ContainerObject {
 	}
 
 	/**
+	 * Maps over children.
+	 *
+	 * @param {(value: Node, index: number, arr: Node[]) => any[]} callback
+	 * @param {boolean} [recursively=false]
+	 * @returns {Array}
+	 */
+	map(callback, recursively) {
+		return super.map(callback, recursively)
+	}
+
+	/**
 	 * @param {object} [input]
 	 * @param {boolean} [input.trim=false]
 	 * @param {string} [input.tab="\t"]
@@ -41,6 +52,13 @@ class Node extends ContainerObject {
 			...this.children.map(c => c.toString({ trim, tab })),
 		].join(eol)
 	}
-}
 
-export default Node
+	/**
+	 * @param {any} input
+	 * @returns {Node}
+	 */
+	static from(input) {
+		if (input instanceof Node) return input
+		return new Node(input)
+	}
+}
