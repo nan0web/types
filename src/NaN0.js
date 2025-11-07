@@ -1,4 +1,3 @@
-import NANO from './NANO.js'
 import Parser from './Parser/Parser.js'
 import Node from './Parser/Node.js'
 
@@ -15,70 +14,9 @@ import Node from './Parser/Node.js'
  *          These types can cover most of business cases when structuring data into
  *          classes and nested and connected business logic as it is in rea1 life.
  */
-export const exampleOfFormat = `
-NaN0 format file structure:
-  array when empty: []
-  array when have values:
-    - object with some values:
-      name: Some values
-    - 160_000_500.345
-    - |
-      multiple line
-      string
-      only with the | no other symbols are available
-  object when empty: {}
-  # comment inline
-  # second comment inline
-  object when have values:
-    name as a one line string: One line, possible with "
-    name as a one line with quotes: "Only double quotes are possible \\" escaped quotes"
-    # multiline comment
-      as simple, as object or text comment.
-      What do you want to know?
-    string as a multiline: |
-      only with the | char,
-      no other symbols
-    date as a one line value only: 2024-11-13
-    datetime as one line value only: 2024-11-13T19:34:00
-    short datetime: 2024-11-13T19:34:00
-    number as integer: 160_000_500
-    number as a float: 160_000_500.345
-    negative number: -160_000_500.345
-    boolean: true
-    null: null`
 
-export const exampleOfExpected = {
-	"NaN0 format file structure": {
-		"array when empty": [],
-		"array when have values":
-			[
-				{ "object with some values": { name: "Some values" } },
-				160_000_500.345,
-				"multiple line\nstring\nonly with the | no other symbols are available",
-			],
-		"object when empty": {},
-		// # comment inline
-		// # second comment inline
-		"object when have values": {
-			"name as a one line string": "One line, possible with \"",
-			"name as a one line with quotes": "Only double quotes are possible \" escaped quotes",
-			// # multiline comment
-			//   as simple, as object or text comment.
-			//   What do you want to know?
-			"string as a multiline": "only with the | char,\nno other symbols",
-			"date as a one line value only": new Date("2024-11-13"),
-			"datetime as one line value only": new Date("2024-11-13T19:34:00"),
-			"short datetime": new Date("2024-11-13T19:34:00"),
-			"number as integer": 160_000_500,
-			"number as a float": 160_000_500.345,
-			"negative number": -160_000_500.345,
-			boolean: true,
-			null: null,
-		}
-	}
-}
 
-class NaN0 {
+export default class NaN0 {
 	static NEW_LINE = "\n"
 	static TAB = "  "
 	static EMPTY_ARRAY = "[]"
@@ -105,13 +43,14 @@ class NaN0 {
 		// date
 		if (this.dateRegex.test(s)) {
 			let dateStr = s
-			if (s.includes('+') && !s.includes('+') && s.match(/[+-]\d{4}$/)) {
+			// Fix timezone without colon, e.g. +0000 -> +00:00
+			if (s.match(/[+-]\d{4}$/) && !s.includes(':')) {
 				const tzMatch = s.match(/([+-]\d{4})$/)
 				if (tzMatch) {
 					const tz = tzMatch[1]
 					const hh = tz.substring(1, 3)
 					const mm = tz.substring(3)
-					dateStr = s.replace(tz, `+${hh}:${mm}`)
+					dateStr = s.replace(tz, `${tz[0]}${hh}:${mm}`)
 				}
 			}
 			const asDate = new Date(dateStr)
@@ -168,22 +107,97 @@ class NaN0 {
 		return String(value)
 	}
 
-	static parseContainer(children, level = 0) {
-		const filtered = children.filter(c => {
+	static parseComments(allChildren, startIdx) {
+		let commentLines = []
+		let i = startIdx
+		while (i < allChildren.length) {
+			const c = allChildren[i]
 			const ct = c.content.trim()
-			return ct !== '' && !ct.startsWith(this.COMMENT_START)
-		})
-		if (filtered.length === 0) return {}
-		const firstContent = filtered[0].content.trim()
-		if (firstContent === this.EMPTY_ARRAY) return []
-		if (firstContent === this.EMPTY_OBJECT) return {}
-		const isArray = filtered[0].content.trim().startsWith('- ')
-		return isArray ? this.parseArray(filtered, level) : this.parseObject(filtered, level)
+			if (ct !== '' && !ct.startsWith(this.COMMENT_START)) {
+				break
+			}
+			if (ct.startsWith(this.COMMENT_START)) {
+				let commentText = ct.slice(this.COMMENT_START.length).trim()
+				if (c.children.length > 0) {
+					const subComments = c.children.map(sub => sub.content.trim()).filter(sub => sub !== '').join('\n')
+					if (subComments) commentText += `\n${subComments}`
+				}
+				commentLines.push(commentText)
+			}
+			i++
+		}
+		return { comments: commentLines.join('\n'), nextIdx: i }
 	}
 
-	static parseObject(fields, level = 0) {
+	static parseContainer(allChildren, level = 0) {
+		if (allChildren.length === 0) return {}
+		let i = 0
+		const { comments: topComments, nextIdx } = this.parseComments(allChildren, i)
+		i = nextIdx
+		if (i >= allChildren.length) {
+			const result = {}
+			if (topComments) result.$$comments = topComments
+			return result
+		}
+		const firstNode = allChildren[i]
+		const firstContent = firstNode.content.trim()
+		if (firstContent === this.EMPTY_ARRAY) {
+			let result = []
+			if (topComments || firstNode.children.length > 0) {
+				const emptyComments = topComments ? `${topComments}\n` : ''
+				const subComments = firstNode.children.map(c => c.content).filter(l => l.trim() !== '').join('\n')
+				const allEmptyComments = subComments ? `${emptyComments}${subComments}` : emptyComments
+				if (allEmptyComments) result.unshift({ $$comments: allEmptyComments.trim() })
+			}
+			return result
+		}
+		if (firstContent === this.EMPTY_OBJECT) {
+			let result = {}
+			if (topComments || firstNode.children.length > 0) {
+				const emptyComments = topComments ? `${topComments}\n` : ''
+				const subComments = firstNode.children.map(c => c.content).filter(l => l.trim() !== '').join('\n')
+				const allEmptyComments = subComments ? `${emptyComments}${subComments}` : emptyComments
+				if (allEmptyComments) result.$$comments = allEmptyComments.trim()
+			}
+			return result
+		}
+		const isArray = firstContent.startsWith('- ')
+		let result
+		if (isArray) {
+			const arrayChildren = allChildren.slice(i)
+			result = this.parseArrayWithComments(arrayChildren, level)
+			if (topComments) {
+				if (Array.isArray(result)) {
+					result.unshift({ $$comments: topComments })
+				} else {
+					result.$$comments = topComments
+				}
+			}
+		} else {
+			const objectChildren = allChildren.slice(i)
+			result = this.parseObjectWithComments(objectChildren, level)
+			if (topComments) {
+				if (Array.isArray(result)) {
+					result.unshift({ $$comments: topComments })
+				} else {
+					result.$$comments = topComments
+				}
+			}
+		}
+		return result
+	}
+
+	static parseObjectWithComments(allChildren, level = 0) {
 		const obj = {}
-		for (const fieldNode of fields) {
+		let i = 0
+		let currentComments = ''
+		while (i < allChildren.length) {
+			const { comments, nextIdx } = this.parseComments(allChildren, i)
+			i = nextIdx
+			if (i >= allChildren.length) break
+			if (comments) currentComments += (currentComments ? '\n' : '') + comments
+
+			const fieldNode = allChildren[i]
 			const fieldContent = fieldNode.content.trim()
 			const colonIdx = fieldContent.indexOf(':')
 			if (colonIdx === -1) {
@@ -191,65 +205,89 @@ class NaN0 {
 			}
 			const key = fieldContent.substring(0, colonIdx).trim()
 			let valuePart = fieldContent.substring(colonIdx + 1).trim()
-			const fieldChildren = fieldNode.children.filter(c => {
-				const ct = c.content.trim()
-				return ct !== '' && !ct.startsWith(this.COMMENT_START)
-			})
-			const hasFieldChildren = fieldChildren.length > 0
-			if (hasFieldChildren) {
-				if (valuePart === this.MULTILINE_START) {
-					// multiline
-					const lines = fieldChildren.map(c => c.content).filter(l => l.trim() !== '').join(this.NEW_LINE)
-					obj[key] = lines
-				} else if (valuePart === '') {
-					// container
-					obj[key] = this.parseContainer(fieldChildren, level + 1)
-				} else {
-					throw new Error(`Invalid field with children at level ${level}: valuePart "${valuePart}" for key "${key}"`)
-				}
+			const hasChildren = fieldNode.children.length > 0
+
+			let value
+			if (valuePart === this.MULTILINE_START) {
+				// multiline
+				const lines = fieldNode.children.map(c => c.content).filter(l => l.trim() !== '').join(this.NEW_LINE)
+				value = lines
+			} else if (valuePart === '' && hasChildren) {
+				// container
+				value = this.parseContainer(fieldNode.children, level + 1)
 			} else {
 				// same line
 				if (valuePart === this.EMPTY_ARRAY) {
-					obj[key] = []
+					value = []
 				} else if (valuePart === this.EMPTY_OBJECT) {
-					obj[key] = {}
+					value = {}
 				} else {
-					obj[key] = this.parseValue(valuePart)
+					value = this.parseValue(valuePart)
 				}
 			}
+			if (currentComments && value && typeof value === 'object') {
+				if (Array.isArray(value)) {
+					value.unshift({ $$comments: currentComments })
+				} else {
+					value.$$comments = currentComments
+					if (value.$$comments && typeof value.$$comments === 'string') {
+						value.$$comments = currentComments
+					}
+				}
+				currentComments = ''
+			}
+			obj[key] = value
+			i++
+			currentComments = ''
 		}
+		if (currentComments) obj.$$comments = currentComments
 		return obj
 	}
 
-	static parseArray(items, level = 0) {
+	static parseArrayWithComments(allChildren, level = 0) {
 		const arr = []
-		for (const itemNode of items) {
+		let currentComments = ''
+		let i = 0
+		while (i < allChildren.length) {
+			const { comments, nextIdx } = this.parseComments(allChildren, i)
+			i = nextIdx
+			if (i >= allChildren.length) break
+			if (comments) currentComments += (currentComments ? '\n' : '') + comments
+
+			const itemNode = allChildren[i]
 			if (!itemNode.content.trim().startsWith('- ')) {
 				throw new Error(`Invalid array item at level ${level}: "${itemNode.content}"`)
 			}
 			let content = itemNode.content.trim().replace(/^-\s*/, '').trim()
-			const itemChildren = itemNode.children.filter(c => {
-				const ct = c.content.trim()
-				return ct !== '' && !ct.startsWith(this.COMMENT_START)
-			})
-			const hasItemChildren = itemChildren.length > 0
+			const hasChildren = itemNode.children.length > 0
+
 			let value
-			if (!hasItemChildren) {
+			if (!hasChildren) {
 				value = this.parseValue(content)
 			} else {
 				if (content === this.MULTILINE_START) {
-					const lines = itemChildren.map(c => c.content).filter(l => l.trim() !== '').join(this.NEW_LINE)
+					const lines = itemNode.children.map(c => c.content).filter(l => l.trim() !== '').join(this.NEW_LINE)
 					value = lines
 				} else if (content.endsWith(':')) {
 					const key = content.slice(0, -1).trim()
-					const sub = this.parseContainer(itemChildren, level + 1)
-					value = { [key]: sub }
+					value = { [key]: this.parseContainer(itemNode.children, level + 1) }
 				} else {
 					throw new Error(`Invalid array item with children at level ${level}: "${itemNode.content}"`)
 				}
 			}
+			if (currentComments && value && typeof value === 'object') {
+				if (Array.isArray(value)) {
+					value.unshift({ $$comments: currentComments })
+				} else {
+					value.$$comments = currentComments
+				}
+				currentComments = ''
+			}
 			arr.push(value)
+			i++
+			currentComments = ''
 		}
+		if (currentComments) arr.push({ $$comments: currentComments })
 		return arr
 	}
 
@@ -366,47 +404,62 @@ class NaN0 {
 	}
 
 	/**
-	 * Parses the NaN0 format into an object
+	 * Parses the NaN0 format into an object or array
 	 * @throws {Error} If invalid format
 	 * @param {string} input - Input in NaN0 format
-	 * @returns {any} - Parsed JavaScript object
+	 * @returns {any} - Parsed JavaScript value (object or array)
 	 */
 	static parse(input) {
 		const parser = new Parser({ eol: this.NEW_LINE, tab: this.TAB })
 		const root = parser.decode(input)
-		if (root.children.length !== 1) {
-			throw new Error(`Invalid NaN0 document: expected one top-level key, got ${root.children.length}`)
-		}
-		const topNode = root.children[0]
-		const topContent = topNode.content.trim()
-		if (!topContent.endsWith(':')) {
-			throw new Error(`Invalid NaN0 document: top line must end with ':'`)
-		}
-		const topKey = topContent.slice(0, -1).trim()
-		const topChildren = topNode.children.filter(c => {
-			const ct = c.content.trim()
-			return ct !== '' && !ct.startsWith(this.COMMENT_START)
-		})
-		const topValue = this.parseContainer(topChildren)
-		return { [topKey]: topValue }
+		return this.parseContainer(root.children, 0)
 	}
 
 	/**
-	 * Stringifies any input object into .NaN0 format
-	 * @throws {Error} If input is not a single-key object
-	 * @param {Object} input - Input object with exactly one top-level key
+	 * Stringifies any input object or array into .NaN0 format
+	 * @throws {Error} If input is not a non-null object or array
+	 * @param {Object|Array} input - Input object or array
 	 * @returns {string} - NaN0 formatted string
 	 */
 	static stringify(input) {
-		if (typeof input !== 'object' || input === null || Object.keys(input).length !== 1) {
-			throw new Error('NaN0.stringify requires an object with exactly one top-level key')
+		if (input == null || (typeof input !== 'object' && !Array.isArray(input))) {
+			throw new Error('NaN0.stringify requires a non-null object or array')
 		}
-		const [[topKey, topValue]] = Object.entries(input)
-		const rootNode = new Node({ content: '', indent: -1 })
-		this.addValueToNode(rootNode, topValue, 0, topKey)
-		const topFieldNode = rootNode.children[0]
-		return topFieldNode.toString({ tab: this.TAB, eol: this.NEW_LINE })
+		if (Array.isArray(input)) {
+			const inputCopy = [...input]
+			let rest = inputCopy
+			let topCommentStr = ''
+			if (inputCopy.length > 0 && inputCopy[0] && typeof inputCopy[0] === 'object' && inputCopy[0].$$comments !== undefined) {
+				const comments = inputCopy[0].$$comments
+				const lines = typeof comments === 'string' ? comments.split(this.NEW_LINE).filter(l => l.trim()).map(l => `# ${l.trim()}`) : []
+				topCommentStr = lines.join(this.NEW_LINE)
+				rest = inputCopy.slice(1)
+			}
+			if (rest.length === 0) {
+				return topCommentStr ? `${topCommentStr}${this.NEW_LINE}${this.EMPTY_ARRAY}` : this.EMPTY_ARRAY
+			}
+			const parent = new Node({ content: '', indent: 0 })
+			rest.forEach(item => this.addArrayItemToNode(parent, item, 0))
+			let str = parent.children.map(c => c.toString({ trim: false, tab: this.TAB, eol: this.NEW_LINE })).join(this.NEW_LINE)
+			if (topCommentStr) str = `${topCommentStr}${this.NEW_LINE}${str}`
+			return str
+		} else {
+			const inputCopy = { ...input }
+			let topCommentStr = ''
+			if (inputCopy.$$comments) {
+				const comments = inputCopy.$$comments
+				const lines = typeof comments === 'string' ? comments.split(this.NEW_LINE).filter(l => l.trim()).map(l => `# ${l.trim()}`) : []
+				topCommentStr = lines.join(this.NEW_LINE)
+				delete inputCopy.$$comments
+			}
+			if (Object.keys(inputCopy).length === 0) {
+				return topCommentStr ? `${topCommentStr}${this.NEW_LINE}${this.EMPTY_OBJECT}` : this.EMPTY_OBJECT
+			}
+			const parent = new Node({ content: '', indent: 0 })
+			Object.entries(inputCopy).forEach(([key, value]) => this.addValueToNode(parent, value, 0, key))
+			let str = parent.children.map(c => c.toString({ trim: false, tab: this.TAB, eol: this.NEW_LINE })).join(this.NEW_LINE)
+			if (topCommentStr) str = `${topCommentStr}${this.NEW_LINE}${str}`
+			return str
+		}
 	}
 }
-
-export default NaN0

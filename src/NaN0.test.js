@@ -1,9 +1,57 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import NaN0, { exampleOfExpected, exampleOfFormat } from './NaN0.js'
+import NaN0 from './NaN0.js'
+import { exampleOfExpected, exampleOfFormat } from "./NaN0.examples.js"
 
 describe('NaN0 parse and stringify', () => {
 	describe("parse", () => {
+		it('Should parse empty input as empty object', () => {
+			const result = NaN0.parse('')
+			assert.deepStrictEqual(result, {})
+		})
+
+		it('Should parse only comments as object with $$comments', () => {
+			const input = `# First comment\n# Second comment\n`
+			const result = NaN0.parse(input)
+			assert.deepStrictEqual(result, { $$comments: 'First comment\nSecond comment' })
+		})
+
+		it('Should parse top-level empty object', () => {
+			const input = `{}`
+			const result = NaN0.parse(input)
+			assert.deepStrictEqual(result, {})
+		})
+
+		it('Should parse top-level empty object with comments', () => {
+			const input = `# Comment\n{}`
+			const result = NaN0.parse(input)
+			assert.deepStrictEqual(result, { $$comments: 'Comment', })
+		})
+
+		it('Should parse top-level empty array', () => {
+			const input = `[]`
+			const result = NaN0.parse(input)
+			assert.deepStrictEqual(result, [])
+		})
+
+		it('Should parse top-level empty array with comments', () => {
+			const input = `# Comment\n[]`
+			const result = NaN0.parse(input)
+			assert.deepStrictEqual(result, [{ $$comments: 'Comment' }])
+		})
+
+		it('Should parse top-level object with multiple keys', () => {
+			const input = `name: John\nage: 30`
+			const result = NaN0.parse(input)
+			assert.deepStrictEqual(result, { name: 'John', age: 30 })
+		})
+
+		it('Should parse top-level object with comments', () => {
+			const input = `# Top comment\nname: John\n# Inline ignored for now\nage: 30`
+			const result = NaN0.parse(input)
+			assert.deepStrictEqual(result, { $$comments: 'Top comment', name: 'John', age: 30 })
+		})
+
 		it('Should parse empty array', () => {
 			const input = `test:\n  []`
 			const result = NaN0.parse(input)
@@ -43,6 +91,18 @@ describe('NaN0 parse and stringify', () => {
 					items: ['one', 42, true]
 				}
 			})
+		})
+
+		it('should parse top-level array of primitives', () => {
+			const input = `- one\n- 42\n- true`
+			const result = NaN0.parse(input)
+			assert.deepStrictEqual(result, ['one', 42, true])
+		})
+
+		it('should parse top-level array with comments', () => {
+			const input = `# Array comment\n- one\n- 42`
+			const result = NaN0.parse(input)
+			assert.deepStrictEqual(result, [{ $$comments: 'Array comment' }, 'one', 42])
 		})
 
 		it('should parse array with wrapped object', () => {
@@ -109,8 +169,8 @@ describe('NaN0 parse and stringify', () => {
 		})
 
 		it('should throw on invalid top level', () => {
-			const input = `key1: val1\nkey2: val2`
-			assert.throws(() => NaN0.parse(input), /expected one top-level key/)
+			const input = `test:\n  invalid`
+			assert.throws(() => NaN0.parse(input), /no colon/)
 		})
 
 		it('should throw on invalid array item', () => {
@@ -120,6 +180,62 @@ describe('NaN0 parse and stringify', () => {
 	})
 
 	describe("stringify", () => {
+		it('Should stringify empty object', () => {
+			const input = {}
+			const output = NaN0.stringify(input)
+			const expected = `{}`
+			assert.strictEqual(output, expected)
+		})
+
+		it('Should stringify empty object with comments', () => {
+			const input = { $$comments: 'Comment' }
+			const output = NaN0.stringify(input)
+			const expected = `# Comment\n{}`
+			assert.strictEqual(output, expected)
+		})
+
+		it('Should stringify empty array', () => {
+			const input = []
+			const output = NaN0.stringify(input)
+			const expected = `[]`
+			assert.strictEqual(output, expected)
+		})
+
+		it('Should stringify empty array with comments', () => {
+			const input = [{ $$comments: 'Comment' }]
+			const output = NaN0.stringify(input)
+			const expected = `# Comment\n[]`
+			assert.strictEqual(output, expected)
+		})
+
+		it('Should stringify top-level object with multiple keys', () => {
+			const input = { name: 'John', age: 30 }
+			const output = NaN0.stringify(input)
+			const expected = `name: John\nage: 30`
+			assert.strictEqual(output, expected)
+		})
+
+		it('Should stringify top-level object with comments', () => {
+			const input = { $$comments: 'Top comment', name: 'John', age: 30 }
+			const output = NaN0.stringify(input)
+			const expected = `# Top comment\nname: John\nage: 30`
+			assert.strictEqual(output, expected)
+		})
+
+		it('Should stringify top-level array of primitives', () => {
+			const input = ['one', 42, true]
+			const output = NaN0.stringify(input)
+			const expected = `- one\n- 42\n- true`
+			assert.strictEqual(output, expected)
+		})
+
+		it('Should stringify top-level array with comments', () => {
+			const input = [{ $$comments: 'Array comment' }, 'one', 42]
+			const output = NaN0.stringify(input)
+			const expected = `# Array comment\n- one\n- 42`
+			assert.strictEqual(output, expected)
+		})
+
 		it('Should stringify empty array', () => {
 			const input = { list: [] }
 			const output = NaN0.stringify(input)
@@ -232,10 +348,18 @@ describe('NaN0 parse and stringify', () => {
 			assert.deepStrictEqual(reparsed, parsed)
 		})
 
+		it('Should roundtrip with top-level comments', () => {
+			const input = `# Original comment\nname: John`
+			const parsed = NaN0.parse(input)
+			const stringified = NaN0.stringify(parsed)
+			const reparsed = NaN0.parse(stringified)
+			assert.deepStrictEqual(reparsed, parsed)
+		})
+
 		it('Should throw on invalid input for stringify', () => {
-			assert.throws(() => NaN0.stringify({ a: 1, b: 2 }), /exactly one top-level key/)
-			assert.throws(() => NaN0.stringify('invalid'), /exactly one top-level key/)
-			assert.throws(() => NaN0.stringify([]), /exactly one top-level key/)
+			assert.throws(() => NaN0.stringify('invalid'), /requires a non-null object or array/)
+			assert.throws(() => NaN0.stringify(null), /requires a non-null object or array/)
+			assert.throws(() => NaN0.stringify(42), /requires a non-null object or array/)
 		})
 	})
 })

@@ -49,7 +49,7 @@ export default class Node extends ContainerObject {
 		const prefix = trim ? "" : tab.repeat(this.indent)
 		return [
 			prefix + this.content,
-			...this.children.map(c => c.toString({ trim, tab })),
+			...this.children.map(c => c.toString({ trim, tab, eol })),
 		].join(eol)
 	}
 
