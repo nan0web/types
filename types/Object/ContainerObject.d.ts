@@ -28,15 +28,14 @@ export default class ContainerObject {
     get recent(): ContainerObject | null;
     /**
      * Adds element to the container.
-     * @param {*} element
+     * @param {Partial<ContainerObject>} element
      * @returns {ContainerObject}
      */
-    add(element: any): ContainerObject;
+    add(element: Partial<ContainerObject>): ContainerObject;
     /**
      * Updates level for all nested children recursively.
-     * @private
      */
-    private _updateLevel;
+    _updateLevel(): void;
     /**
      * Removes the element from the container.
      * @param {*} element

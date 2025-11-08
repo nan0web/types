@@ -1,10 +1,11 @@
-/* -------------------------------------------------------------
-	 parser/src/Parser.js
-	 A minimal, dependency‑free indentation (tab‑bet) parser.
-	 Only @nan0web/types is used for the ContainerObject base class.
-	 ----------------------------------------------------------- */
-
 import ContainerObject from "../Object/ContainerObject.js"
+
+/**
+ * @typedef {Object} NodeInput
+ * @property {string} [content=""]
+ * @property {Array<Partial<Node>>} [children=[]]
+ * @property {number} [indent=0]
+ */
 
 /**
  * ──  Generic tree node that every format will start from
@@ -12,19 +13,50 @@ import ContainerObject from "../Object/ContainerObject.js"
  */
 export default class Node extends ContainerObject {
 	/** @type {string} */
-	content
+	content = ''
 	/** @type {Node[]} */
 	children = []
 	/** @type {number} */
-	indent
+	indent = 0
 
+	/**
+	 *
+	 * @param {NodeInput} input
+	 */
 	constructor(input = {}) {
 		const { content = "", children = [], indent = 0 } = input
-		super({ children, level: 0 })
+		super({ level: indent })
 		this.content = String(content)
-		// @ts-ignore
-		this.children = children.map(c => Node.from(c))
 		this.indent = Number(indent)
+		children.forEach(c => this.add(c))
+	}
+
+	/**
+	 * Adds element to the container.
+	 * @param {Partial<Node>} element
+	 * @returns {Node}
+	 */
+	add(element) {
+		const el = Node.from(element)
+		el.level = this.level + 1
+		el.indent = this.indent + 1
+		this.children.push(el)
+		el._updateLevel()
+		el._updateIndent?.()
+		return this
+	}
+
+	/**
+	 * Updates indent for all nested children recursively.
+	 * @private
+	 */
+	_updateIndent() {
+		for (const child of this.children) {
+			if (child instanceof Node) {
+				child.indent = this.indent + 1
+				child._updateIndent()
+			}
+		}
 	}
 
 	/**
@@ -34,7 +66,8 @@ export default class Node extends ContainerObject {
 	 * @param {boolean} [recursively=false]
 	 * @returns {Array}
 	 */
-	map(callback, recursively) {
+	map(callback, recursively = false) {
+		// @ts-ignore
 		return super.map(callback, recursively)
 	}
 
@@ -49,7 +82,7 @@ export default class Node extends ContainerObject {
 		const prefix = trim ? "" : tab.repeat(this.indent)
 		return [
 			prefix + this.content,
-			...this.children.map(c => c.toString({ trim, tab, eol })),
+			...this.children.map(c => c.toString({ trim, tab, eol }))
 		].join(eol)
 	}
 

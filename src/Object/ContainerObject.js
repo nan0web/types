@@ -45,22 +45,19 @@ export default class ContainerObject {
 
 	/**
 	 * Adds element to the container.
-	 * @param {*} element
+	 * @param {Partial<ContainerObject>} element
 	 * @returns {ContainerObject}
 	 */
 	add(element) {
-		if (!(element instanceof ContainerObject)) {
-			element = ContainerObject.from(element)
-		}
-		element.level = this.level + 1
-		this.children.push(element)
-		element._updateLevel()
+		const el = ContainerObject.from(element)
+		el.level = this.level + 1
+		this.children.push(el)
+		el._updateLevel()
 		return this
 	}
 
 	/**
 	 * Updates level for all nested children recursively.
-	 * @private
 	 */
 	_updateLevel() {
 		for (const child of this.children) {

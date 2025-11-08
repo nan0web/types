@@ -2,6 +2,13 @@ import Parser from './Parser/Parser.js'
 import Node from './Parser/Node.js'
 
 /**
+ * @typedef {Object} Context
+ * @property {Array<{ text: string, id: string }>} comments
+ * @property {number} [i]
+ * @property {string} [next]
+ */
+
+/**
  * NaN0 format - "0 is not a number" - zero is a universe that is a source of any
  * other numbers and else.
  * The word rea1 means subjective reality, because everyone's reality is different.
@@ -23,7 +30,7 @@ export default class NaN0 {
 	static EMPTY_DATE = "0000-00-00"
 	static EMPTY_OBJECT = "{}"
 	static MULTILINE_START = "|"
-	static VALUE_DELIMITER = [": ", ":\n"]
+	static VALUE_DELIMITER = [": ", /^(.+):$/]
 	static COMMENT_START = "# "
 
 	static numberRegex = /^-?\d+(?:_\d+)*(?:\.\d+(?:_\d+)*)?$/
@@ -107,13 +114,42 @@ export default class NaN0 {
 		return String(value)
 	}
 
-	static parseComments(allChildren, startIdx) {
+	/**
+	 * @param {string} text
+	 * @param {string | RegExp | Array<string | RegExp>} condition
+	 * @returns {{ condition: string | RegExp, name: string } | false}
+	 */
+	static match(text, condition) {
+		if (!Array.isArray(condition)) {
+			condition = [condition]
+		}
+		for (const cond of condition) {
+			if (cond instanceof RegExp) {
+				const found = text.match(cond)
+				if (found) {
+					return { condition: cond, name: found[1] }
+				}
+			}
+			if ("string" === typeof cond && text.includes(cond)) {
+				const [name] = text.split(cond)
+				return { condition: cond, name }
+			}
+		}
+		return false
+	}
+
+	static parseComments(allChildren, startIdx = 0) {
 		let commentLines = []
 		let i = startIdx
+		let nextIdx = "."
 		while (i < allChildren.length) {
 			const c = allChildren[i]
 			const ct = c.content.trim()
 			if (ct !== '' && !ct.startsWith(this.COMMENT_START)) {
+				const found = this.match(ct, this.VALUE_DELIMITER)
+				if (found) {
+					nextIdx = found.name
+				}
 				break
 			}
 			if (ct.startsWith(this.COMMENT_START)) {
@@ -126,74 +162,101 @@ export default class NaN0 {
 			}
 			i++
 		}
-		return { comments: commentLines.join('\n'), nextIdx: i }
+		return { comments: commentLines.join('\n'), nextIdx, i }
 	}
 
-	static parseContainer(allChildren, level = 0) {
+	/**
+	 * @param {any[]} allChildren
+	 * @param {number} level
+	 * @param {Context} context
+	 * @returns {any}
+	 */
+	static parseContainer(allChildren, level = 0, context = { comments: [], i: 0 }) {
 		if (allChildren.length === 0) return {}
-		let i = 0
-		const { comments: topComments, nextIdx } = this.parseComments(allChildren, i)
-		i = nextIdx
+		let { comments: topComments, i, nextIdx } = this.parseComments(allChildren)
 		if (i >= allChildren.length) {
 			const result = {}
-			if (topComments) result.$$comments = topComments
+			if (topComments) {
+				context.comments.push({ text: topComments, id: "." })
+			}
 			return result
 		}
 		const firstNode = allChildren[i]
 		const firstContent = firstNode.content.trim()
+
+		/* ---------- EMPTY ARRAY ---------- */
 		if (firstContent === this.EMPTY_ARRAY) {
 			let result = []
 			if (topComments || firstNode.children.length > 0) {
 				const emptyComments = topComments ? `${topComments}\n` : ''
 				const subComments = firstNode.children.map(c => c.content).filter(l => l.trim() !== '').join('\n')
 				const allEmptyComments = subComments ? `${emptyComments}${subComments}` : emptyComments
-				if (allEmptyComments) result.unshift({ $$comments: allEmptyComments.trim() })
+				if (allEmptyComments) {
+					/*  comment id for an empty array should refer to the first
+					 *  array index (0) when the array is at the root level.
+					 *  For nested arrays we keep the original behaviour
+					 *  (use the node position `${i}`) to stay compatible
+					 *  with existing expectations. */
+					const commentId = level === 0 ? `[0]` : `[${i}]`
+					context.comments.push({ text: allEmptyComments.trim(), id: commentId })
+				}
 			}
 			return result
 		}
+
+		/* ---------- EMPTY OBJECT ---------- */
 		if (firstContent === this.EMPTY_OBJECT) {
 			let result = {}
 			if (topComments || firstNode.children.length > 0) {
 				const emptyComments = topComments ? `${topComments}\n` : ''
 				const subComments = firstNode.children.map(c => c.content).filter(l => l.trim() !== '').join('\n')
 				const allEmptyComments = subComments ? `${emptyComments}${subComments}` : emptyComments
-				if (allEmptyComments) result.$$comments = allEmptyComments.trim()
+				if (allEmptyComments) {
+					context.comments.push({ text: allEmptyComments.trim(), id: nextIdx })
+				}
 			}
 			return result
 		}
+
 		const isArray = firstContent.startsWith('- ')
 		let result
 		if (isArray) {
 			const arrayChildren = allChildren.slice(i)
-			result = this.parseArrayWithComments(arrayChildren, level)
+			context.i = i
+			result = this.parseArrayWithComments(arrayChildren, level, context)
 			if (topComments) {
-				if (Array.isArray(result)) {
-					result.unshift({ $$comments: topComments })
-				} else {
-					result.$$comments = topComments
-				}
+				/*  Same logic as for empty arrays – comment index should be
+				 *  `[0]` at the root level, otherwise keep the original
+				 *  calculation based on the node position. */
+				const commentId = level === 0 ? `[0]` : `[${i}]`
+				context.comments.push({ text: topComments, id: commentId })
 			}
 		} else {
 			const objectChildren = allChildren.slice(i)
-			result = this.parseObjectWithComments(objectChildren, level)
+			context.i = i
+			context.next = nextIdx
+			result = this.parseObjectWithComments(objectChildren, level, context)
 			if (topComments) {
-				if (Array.isArray(result)) {
-					result.unshift({ $$comments: topComments })
-				} else {
-					result.$$comments = topComments
-				}
+				context.comments.push({ text: topComments, id: nextIdx })
 			}
 		}
 		return result
 	}
 
-	static parseObjectWithComments(allChildren, level = 0) {
+	/**
+	 *
+	 * @param {any[]} allChildren
+	 * @param {number} level
+	 * @param {Context} [context]
+	 * @returns
+	 */
+	static parseObjectWithComments(allChildren, level = 0, context = { comments: [] }) {
 		const obj = {}
 		let i = 0
 		let currentComments = ''
 		while (i < allChildren.length) {
-			const { comments, nextIdx } = this.parseComments(allChildren, i)
-			i = nextIdx
+			const { comments, i: nextI } = this.parseComments(allChildren, i)
+			i = nextI
 			if (i >= allChildren.length) break
 			if (comments) currentComments += (currentComments ? '\n' : '') + comments
 
@@ -225,32 +288,34 @@ export default class NaN0 {
 					value = this.parseValue(valuePart)
 				}
 			}
-			if (currentComments && value && typeof value === 'object') {
-				if (Array.isArray(value)) {
-					value.unshift({ $$comments: currentComments })
-				} else {
-					value.$$comments = currentComments
-					if (value.$$comments && typeof value.$$comments === 'string') {
-						value.$$comments = currentComments
-					}
-				}
+			if (currentComments) {
+				context.comments.push({ text: currentComments, id: key || "." })
 				currentComments = ''
 			}
 			obj[key] = value
 			i++
 			currentComments = ''
 		}
-		if (currentComments) obj.$$comments = currentComments
+		if (currentComments) {
+			context.comments.push({ text: currentComments, id: "." })
+		}
 		return obj
 	}
 
-	static parseArrayWithComments(allChildren, level = 0) {
+	/**
+	 *
+	 * @param {any[]} allChildren
+	 * @param {number} level
+	 * @param {Context} context
+	 * @returns
+	 */
+	static parseArrayWithComments(allChildren, level = 0, context = { comments: [] }) {
 		const arr = []
 		let currentComments = ''
 		let i = 0
 		while (i < allChildren.length) {
-			const { comments, nextIdx } = this.parseComments(allChildren, i)
-			i = nextIdx
+			const { comments, i: nextI } = this.parseComments(allChildren, i)
+			i = nextI
 			if (i >= allChildren.length) break
 			if (comments) currentComments += (currentComments ? '\n' : '') + comments
 
@@ -262,32 +327,32 @@ export default class NaN0 {
 			const hasChildren = itemNode.children.length > 0
 
 			let value
+			let name
 			if (!hasChildren) {
 				value = this.parseValue(content)
 			} else {
+				const foundObject = this.match(content, this.VALUE_DELIMITER)
 				if (content === this.MULTILINE_START) {
 					const lines = itemNode.children.map(c => c.content).filter(l => l.trim() !== '').join(this.NEW_LINE)
 					value = lines
-				} else if (content.endsWith(':')) {
-					const key = content.slice(0, -1).trim()
-					value = { [key]: this.parseContainer(itemNode.children, level + 1) }
+				} else if (foundObject) {
+					name = foundObject.name
+					value = { [name]: this.parseContainer(itemNode.children, level + 1) }
 				} else {
 					throw new Error(`Invalid array item with children at level ${level}: "${itemNode.content}"`)
 				}
 			}
 			if (currentComments && value && typeof value === 'object') {
-				if (Array.isArray(value)) {
-					value.unshift({ $$comments: currentComments })
-				} else {
-					value.$$comments = currentComments
-				}
+				context.comments.push({ text: currentComments, id: name || "." })
 				currentComments = ''
 			}
 			arr.push(value)
 			i++
 			currentComments = ''
 		}
-		if (currentComments) arr.push({ $$comments: currentComments })
+		if (currentComments) {
+			context.comments.push({ text: currentComments, id: "[0]" })
+		}
 		return arr
 	}
 
@@ -407,58 +472,62 @@ export default class NaN0 {
 	 * Parses the NaN0 format into an object or array
 	 * @throws {Error} If invalid format
 	 * @param {string} input - Input in NaN0 format
+	 * @param {Context} context
 	 * @returns {any} - Parsed JavaScript value (object or array)
 	 */
-	static parse(input) {
+	static parse(input, context = { comments: [] }) {
 		const parser = new Parser({ eol: this.NEW_LINE, tab: this.TAB })
 		const root = parser.decode(input)
-		return this.parseContainer(root.children, 0)
+		const result = this.parseContainer(root.children, 0, context)
+		context.comments = context.comments.reverse()
+		return result
 	}
 
 	/**
 	 * Stringifies any input object or array into .NaN0 format
 	 * @throws {Error} If input is not a non-null object or array
 	 * @param {Object|Array} input - Input object or array
+	 * @param {Context} context
 	 * @returns {string} - NaN0 formatted string
 	 */
-	static stringify(input) {
+	static stringify(input, context = { comments: [] }) {
 		if (input == null || (typeof input !== 'object' && !Array.isArray(input))) {
 			throw new Error('NaN0.stringify requires a non-null object or array')
 		}
+
+		const renderComments = (path) => {
+			let str = ""
+			if (context.comments) {
+				str += context.comments.map(
+					({ text, id }) => path === id ? text.split("\n").map(
+						(row, i) => i > 0 ? this.TAB + row : row
+					).join("\n") : ""
+				).filter(Boolean).join("\n#")
+				if (str) str = "# " + str + "\n"
+			}
+			return str
+		}
+
 		if (Array.isArray(input)) {
 			const inputCopy = [...input]
 			let rest = inputCopy
-			let topCommentStr = ''
-			if (inputCopy.length > 0 && inputCopy[0] && typeof inputCopy[0] === 'object' && inputCopy[0].$$comments !== undefined) {
-				const comments = inputCopy[0].$$comments
-				const lines = typeof comments === 'string' ? comments.split(this.NEW_LINE).filter(l => l.trim()).map(l => `# ${l.trim()}`) : []
-				topCommentStr = lines.join(this.NEW_LINE)
-				rest = inputCopy.slice(1)
-			}
+			let str = renderComments("[0]")
 			if (rest.length === 0) {
-				return topCommentStr ? `${topCommentStr}${this.NEW_LINE}${this.EMPTY_ARRAY}` : this.EMPTY_ARRAY
+				return str + this.EMPTY_ARRAY
 			}
 			const parent = new Node({ content: '', indent: 0 })
 			rest.forEach(item => this.addArrayItemToNode(parent, item, 0))
-			let str = parent.children.map(c => c.toString({ trim: false, tab: this.TAB, eol: this.NEW_LINE })).join(this.NEW_LINE)
-			if (topCommentStr) str = `${topCommentStr}${this.NEW_LINE}${str}`
+			str += parent.children.map(c => c.toString({ trim: false, tab: this.TAB, eol: this.NEW_LINE })).join(this.NEW_LINE)
 			return str
 		} else {
 			const inputCopy = { ...input }
-			let topCommentStr = ''
-			if (inputCopy.$$comments) {
-				const comments = inputCopy.$$comments
-				const lines = typeof comments === 'string' ? comments.split(this.NEW_LINE).filter(l => l.trim()).map(l => `# ${l.trim()}`) : []
-				topCommentStr = lines.join(this.NEW_LINE)
-				delete inputCopy.$$comments
-			}
+			let str = renderComments(".")
 			if (Object.keys(inputCopy).length === 0) {
-				return topCommentStr ? `${topCommentStr}${this.NEW_LINE}${this.EMPTY_OBJECT}` : this.EMPTY_OBJECT
+				return str + this.EMPTY_OBJECT
 			}
 			const parent = new Node({ content: '', indent: 0 })
 			Object.entries(inputCopy).forEach(([key, value]) => this.addValueToNode(parent, value, 0, key))
-			let str = parent.children.map(c => c.toString({ trim: false, tab: this.TAB, eol: this.NEW_LINE })).join(this.NEW_LINE)
-			if (topCommentStr) str = `${topCommentStr}${this.NEW_LINE}${str}`
+			str += parent.children.map(c => c.toString({ trim: false, tab: this.TAB, eol: this.NEW_LINE })).join(this.NEW_LINE)
 			return str
 		}
 	}

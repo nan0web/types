@@ -1,4 +1,3 @@
-export default Parser;
 /**
  * Base class that knows how to:
  *   1️⃣ read an indentation string,
@@ -8,7 +7,7 @@ export default Parser;
  * Concrete parsers (NaN0, Markdown, …) inherit from it and
  * transform the generic tree into their own domain objects.
  */
-declare class Parser {
+export default class Parser {
     /** default line‑break & tab characters – override in ctor if you need something else */
     static EOL: string;
     static TAB: string;

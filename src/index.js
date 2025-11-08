@@ -405,13 +405,14 @@ import ObjectWithAlias from "./Object/ObjectWithAlias.js"
 import UndefinedObject from "./Object/UndefinedObject.js"
 import clone from "./clone.js"
 import merge from "./merge.js"
-import NANO from "./NANO.js"
+import NaN0 from "./NaN0.js"
 import Parser, { Node } from "./Parser/index.js"
 
 export {
 	FilterString, FullObject, UndefinedObject, ObjectWithAlias, ContainerObject, NonEmptyObject,
 	clone, merge,
 	Parser, Node,
+	NaN0,
 }
 
-export default NANO
+export default NaN0

@@ -8,6 +8,7 @@ import {
 	empty, equal, to, FullObject, UndefinedObject, NonEmptyObject,
 	match, Enum, clone, merge, isConstructible,
 	Parser, Node,
+	ContainerObject,
 } from './index.js'
 
 const fs = new DB()
@@ -93,13 +94,13 @@ function testRender() {
 	 * ## Usage: Basic Types
 	 *
 	 * ### `match(test, options)`
-	 * Checks if any or all of the arguments match a string or regex pattern.
+	 * Checks if any of the arguments match a string or regex pattern.
 	 *
 	 * - **Parameters**
 	 *   - `test` (string|RegExp) – Pattern to match against.
 	 *   - `options` (object, optional) – Matching settings.
 	 *     - `caseInsensitive` (boolean) – Default `false`.
-	 *     - `stringFn` (string) – A method like `startsWith`, `includes`.
+	 *     - `stringFn` (string) – A method like `includes`, `startsWith`.
 	 *     - `method` ("some"|"every") – Whether check one or all args. Default `"some"`.
 	 */
 	it('How to use `match(regex)`?', () => {
@@ -271,6 +272,74 @@ function testRender() {
 
 	/**
 	 * @docs
+	 * ### ContainerObject
+	 *
+	 * Constructor and add() added for the proper typings of B class.
+	 * @todo add short desc
+	 */
+	it('How to use NonEmptyObject to filter empty values?', () => {
+		//import { ContainerObject } from "@nan0web/types"
+		/** @typedef {import("@nan0web/types/types/Object/ContainerObject").ContainerObjectArgs} ContainerObjectArgs */
+		class B extends ContainerObject {
+			/** @type {string} */
+			body
+			/** @type {B[]} */
+			children = []
+			/** @param {ContainerObjectArgs & string} */
+			constructor(input = {}) {
+				if ("string" === typeof input) {
+					input = { body: input }
+				}
+				const {
+					children = [],
+					body = "",
+					...rest
+				} = input
+				super(rest)
+				this.body = String(body)
+				children.map(c => this.add(c))
+			}
+			/**
+			 * Adds element to the container.
+			 * @param {Partial<B>} element
+			 * @returns {B}
+			 */
+			add(element) {
+				this.children.push(B.from(element))
+				this._updateLevel()
+				return this
+			}
+			/**
+			 * @param {Partial<B> | string} input
+			 * @returns {B}
+			 */
+			static from(input) {
+				if (input instanceof B) return input
+				return new B(input)
+			}
+		}
+
+		const root = new B("root")
+		root.add("1st")
+		root.add("2nd")
+		console.info(root)
+		// B { body: "root", level: 0, children: [
+		//   B { body: "1st", level: 1, children: [] }
+		//   B { body: "2nd", level: 1, children: [] }
+		// ] }
+
+		assert.deepStrictEqual(console.output()[0][1], B.from({
+			body: "root",
+			level: 0,
+			children: [
+				B.from({ body: "1st", level: 1, children: [] }),
+				B.from({ body: "2nd", level: 1, children: [] }),
+			]
+		}))
+	})
+
+	/**
+	 * @docs
 	 * ### NonEmptyObject
 	 *
 	 * A base class whose `.toObject()` skips properties with empty values.
@@ -362,8 +431,8 @@ function testRender() {
 	 */
 	it('How to check if function is constructible?', () => {
 		//import { isConstructible } from "@nan0web/types"
-		console.info(isConstructible(class X {})) // ← true
-		console.info(isConstructible(() => {})) // ← false
+		console.info(isConstructible(class X { })) // ← true
+		console.info(isConstructible(() => { })) // ← false
 		assert.equal(console.output()[0][1], true)
 		assert.equal(console.output()[1][1], false)
 	})
@@ -378,13 +447,31 @@ function testRender() {
 	it('How to parse indented string with Parser?', () => {
 		//import { Parser } from "@nan0web/types"
 		const parser = new Parser({ tab: "  " })
-		const text = "root\n  child\n    subchild"
+		const text = "root\n  child\n    subchild\nsibling to root"
 		const tree = parser.decode(text)
-
-		console.info(tree.toString({ trim: true })) // ← "root\n\n\tchild\n\n\t\tsubchild"
-		assert.ok(tree instanceof Node)
-		assert.ok(tree.children.length === 1)
-		assert.ok(tree.children[0].content === "root")
+		console.info(tree)
+		console.info(tree.toString({ trim: true })) // ← "root\nchild\nsubchild\nsibling to root"
+		assert.ok(console.output()[0][1] instanceof Node)
+		const expected = new Node({ content: '' })
+		expected.indent = 0
+		expected.level = 0
+		const rootNode = new Node({ content: 'root' })
+		rootNode.indent = 0
+		rootNode.level = 0
+		const childNode = new Node({ content: 'child' })
+		childNode.indent = 1
+		childNode.level = 1
+		const subNode = new Node({ content: 'subchild' })
+		subNode.indent = 2
+		subNode.level = 2
+		childNode.children.push(subNode)
+		rootNode.children.push(childNode)
+		expected.children.push(rootNode)
+		const siblingNode = new Node({ content: 'sibling to root' })
+		siblingNode.indent = 0
+		siblingNode.level = 0
+		expected.children.push(siblingNode)
+		assert.deepStrictEqual(tree, expected)
 	})
 
 	/**
@@ -398,18 +485,15 @@ function testRender() {
 		const root = new Node({ content: "root" })
 		const child = new Node({ content: "child" })
 		root.add(child)
-		console.info(String(root)) // ← "root\nchild"
-		assert.equal(console.output()[0][1], "root\nchild")
+		console.info(String(root)) // ← "root\n\tchild"
+		assert.equal(console.output()[0][1], "root\n\tchild")
 	})
 
 	/**
 	 * @docs
-	 * ## NANO & NaN0 Formats
+	 * ## NaN0 Format
 	 *
-	 * These formats provide minimalistic, human-friendly serialization for typed data.
-	 *
-	 * - `NANO` – core implementation
-	 * - `NaN0` – extended with support for date, comments, etc.
+	 * This format provides minimalistic, human-friendly serialization for typed data.
 	 *
 	 * ## Playground
 	 */
@@ -420,10 +504,10 @@ function testRender() {
 		 * git clone https://github.com/nan0web/types.git
 		 * cd types
 		 * npm install
-		 * npm run playground
+		 * npm run play
 		 * ```
 		 */
-		assert.ok(String(pkg.scripts?.playground).includes("node playground"))
+		assert.ok(String(pkg.scripts?.play).includes("node play"))
 	})
 	/**
 	 * @docs
@@ -457,6 +541,11 @@ function testRender() {
 	})
 }
 
+/**
+ * The above `testRender` function generates the README documentation.
+ * It is executed as a normal test suite so that the generated markdown
+ * can be saved to `README.md` and also parsed into a dataset for LLMs.
+ */
 describe('README.md testing', testRender)
 
 describe("Rendering README.md", async () => {

@@ -81,6 +81,9 @@ export default class Parser {
 			while (stack.length && indent <= stack[stack.length - 1].indent) {
 				stack.pop()
 			}
+			if (0 === stack.length) {
+				throw new Error("Parsing error at row #" + (i + 1))
+			}
 			const parent = stack[stack.length - 1].node
 
 			// ----- create a new generic node -----

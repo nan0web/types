@@ -8,7 +8,9 @@
 class ObjectWithAlias {
 	static ALIAS = {}
 
-	constructor(input = {}) {}
+	constructor(input = {}) {
+		Object.assign(this, typeof input === 'object' ? input : {})
+	}
 
 	/**
 	 * Factory method that maps aliased keys to their target names.
@@ -18,12 +20,17 @@ class ObjectWithAlias {
 	 */
 	static from(props = {}) {
 		if (props instanceof ObjectWithAlias) return props
+		if (typeof props !== 'object' || props === null) {
+			props = {}
+		}
+		const mapped = { ...props }
 		for (const [key, value] of Object.entries(this.ALIAS)) {
-			if (undefined !== props[key]) {
-				props[value] = props[key]
+			if (key in mapped) {
+				mapped[value] = mapped[key]
+				delete mapped[key]
 			}
 		}
-		return new this(props)
+		return new this(mapped)
 	}
 }
 

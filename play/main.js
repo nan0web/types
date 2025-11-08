@@ -3,8 +3,8 @@
 import process from "node:process"
 import Logger from "@nan0web/log"
 import { select } from "@nan0web/ui-cli"
-import { runNANOPlayground } from "./nano-playground.js"
-import { runParserPlayground } from "./parser-playground.js"
+import { runNANOPlayground } from "./nano.js"
+import { runParserPlayground } from "./parser.js"
 
 const console = new Logger({ level: "info" })
 

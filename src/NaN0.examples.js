@@ -43,7 +43,6 @@ export const exampleOfExpected = {
 		"object when have values": {
 			"name as a one line string": "One line, possible with \"",
 			"name as a one line with quotes": "Only double quotes are possible \" escaped quotes",
-			"$$comments": "comment inline\nsecond comment inline",
 			"string as a multiline": "only with the | char,\nno other symbols",
 			"date as a one line value only": new Date("2024-11-13"),
 			"datetime as one line value only": new Date("2024-11-13T19:34:00"),
@@ -56,3 +55,8 @@ export const exampleOfExpected = {
 		}
 	}
 }
+
+export const exampleOfComments = [
+	{ text: "comment inline\nsecond comment inline", id: "NaN0 format file structure.object when have values" },
+	{ text: "ultiline comment\nas simple, as object or text comment.\nWhat do you want to know?", id: "NaN0 format file structure.object when have values.string as a multiline" }
+]

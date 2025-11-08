@@ -2,7 +2,7 @@
 
 |[Status](https://github.com/nan0web/monorepo/blob/main/system.md#написання-сценаріїв)|Documentation|Test coverage|Features|Npm version|
 |---|---|---|---|---|
- |🟢 `98.0%` |🧪 [English 🏴󠁧󠁢󠁥󠁮󠁧󠁿](https://github.com/nan0web/types/blob/main/README.md)<br />[Українською 🇺🇦](https://github.com/nan0web/types/blob/main/docs/uk/README.md) |🟡 `88.8%` |✅ d.ts 📜 system.md 🕹️ playground |1.0.2 |
+ |🟢 `99.7%` |🧪 [English 🏴󠁧󠁢󠁥󠁮󠁧󠁿](https://github.com/nan0web/types/blob/main/README.md)<br />[Українською 🇺🇦](https://github.com/nan0web/types/blob/main/docs/uk/README.md) |🟢 `99.3%` |✅ d.ts 📜 system.md 🕹️ playground |1.0.3 |
 
 A minimal, zero-dependency toolkit for managing JavaScript data structures,
 conversions, and type validation. Built for [nan0web philosophy](https://github.com/nan0web/monorepo/blob/main/system.md#nanweb-nan0web),
@@ -40,13 +40,13 @@ This package is designed with minimalism and precision:
 ## Usage: Basic Types
 
 ### `match(test, options)`
-Checks if any or all of the arguments match a string or regex pattern.
+Checks if any of the arguments match a string or regex pattern.
 
 - **Parameters**
   - `test` (string|RegExp) – Pattern to match against.
   - `options` (object, optional) – Matching settings.
     - `caseInsensitive` (boolean) – Default `false`.
-    - `stringFn` (string) – A method like `startsWith`, `includes`.
+    - `stringFn` (string) – A method like `includes`, `startsWith`.
     - `method` ("some"|"every") – Whether check one or all args. Default `"some"`.
 
 How to use `match(regex)`?
@@ -161,6 +161,64 @@ class A { x = 9 }
 const converted = to(Object)(new A())
 console.info(converted) // ← { x: 9 }
 ```
+### ContainerObject
+
+Constructor and add() added for the proper typings of B class.
+@todo add short desc
+
+How to use NonEmptyObject to filter empty values?
+```js
+import { ContainerObject } from "@nan0web/types"
+/** @typedef {import("@nan0web/types/types/Object/ContainerObject").ContainerObjectArgs} ContainerObjectArgs */
+class B extends ContainerObject {
+/** @type {string} */
+	body
+/** @type {B[]} */
+	children = []
+/** @param {ContainerObjectArgs & string} */
+	constructor(input = {}) {
+		if ("string" === typeof input) {
+			input = { body: input }
+		}
+		const {
+			children = [],
+			body = "",
+			...rest
+		} = input
+		super(rest)
+		this.body = String(body)
+		children.map(c => this.add(c))
+	}
+/**
+	 * Adds element to the container.
+	 * @param {Partial<B>} element
+	 * @returns {B}
+ */
+	add(element) {
+		this.children.push(B.from(element))
+		this._updateLevel()
+		return this
+	}
+/**
+	 * @param {Partial<B> | string} input
+	 * @returns {B}
+ */
+	static from(input) {
+		if (input instanceof B) return input
+		return new B(input)
+	}
+}
+
+const root = new B("root")
+root.add("1st")
+root.add("2nd")
+console.info(root)
+// B { body: "root", level: 0, children: [
+//   B { body: "1st", level: 1, children: [] }
+//   B { body: "2nd", level: 1, children: [] }
+// ] }
+
+```
 ### NonEmptyObject
 
 A base class whose `.toObject()` skips properties with empty values.
@@ -233,8 +291,8 @@ Checks whether a function can be called with `new`.
 How to check if function is constructible?
 ```js
 import { isConstructible } from "@nan0web/types"
-console.info(isConstructible(class X {})) // ← true
-console.info(isConstructible(() => {})) // ← false
+console.info(isConstructible(class X { })) // ← true
+console.info(isConstructible(() => { })) // ← false
 ```
 ## Parser & Tree Structures
 
@@ -245,10 +303,10 @@ How to parse indented string with Parser?
 ```js
 import { Parser } from "@nan0web/types"
 const parser = new Parser({ tab: "  " })
-const text = "root\n  child\n    subchild"
+const text = "root\n  child\n    subchild\nsibling to root"
 const tree = parser.decode(text)
-
-console.info(tree.toString({ trim: true })) // ← "root\n\n\tchild\n\n\t\tsubchild"
+console.info(tree)
+console.info(tree.toString({ trim: true })) // ← "root\nchild\nsubchild\nsibling to root"
 ```
 ### `Node`
 Generic tree node that holds content and children.
@@ -260,14 +318,11 @@ import { Node } from "@nan0web/types"
 const root = new Node({ content: "root" })
 const child = new Node({ content: "child" })
 root.add(child)
-console.info(String(root)) // ← "root\nchild"
+console.info(String(root)) // ← "root\n\tchild"
 ```
-## NANO & NaN0 Formats
+## NaN0 Format
 
-These formats provide minimalistic, human-friendly serialization for typed data.
-
-- `NANO` – core implementation
-- `NaN0` – extended with support for date, comments, etc.
+This format provides minimalistic, human-friendly serialization for typed data.
 
 ## Playground
 
@@ -277,7 +332,7 @@ How to run CLI sandbox?
 git clone https://github.com/nan0web/types.git
 cd types
 npm install
-npm run playground
+npm run play
 ```
 
 ## Java•Script

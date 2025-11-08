@@ -110,4 +110,40 @@ describe('Parser', () => {
 		const tab = Parser.findTab("\tFirst line\n  Second line", ["\t", 2, 4])
 		assert.equal(tab, "\t")
 	})
+
+	describe('Additional coverage for decode and encode', () => {
+		it('decode handles skip as function', () => {
+			const parser = new Parser({
+				skip: [row => row.trim() === '']
+			})
+			const root = parser.decode('line1\n\nline2')
+			assert.strictEqual(root.children.length, 2)
+			assert.strictEqual(root.children[0].content, 'line1')
+		})
+
+		it('encode with indent 0 and children', () => {
+			const parser = new Parser()
+			const node = new Node({ content: 'root', children: [new Node({ content: 'child' })] })
+			const res = parser.encode(node, { indent: 0 })
+			assert.strictEqual(res, 'root\n  child')
+		})
+
+		it('stringify uses instance tab/eol', () => {
+			const parser = new Parser({ tab: '\t', eol: '\r\n' })
+			const node = new Node({ content: 'root' })
+			assert.strictEqual(parser.stringify(node), 'root')
+		})
+
+		it('findTab handles no matches', () => {
+			const noMatch = Parser.findTab('No indents here.')
+			assert.strictEqual(noMatch, '    ')
+		})
+
+		it('encode leaf node', () => {
+			const parser = new Parser()
+			const leaf = new Node({ content: 'leaf' })
+			const res = parser.encode(leaf)
+			assert.strictEqual(res, 'leaf')
+		})
+	})
 })

@@ -7,12 +7,15 @@ describe('Node', () => {
 		const node = new Node()
 		assert.strictEqual(node.content, '')
 		assert.deepStrictEqual(node.children, [])
+		assert.strictEqual(node.indent, 0)
+		assert.strictEqual(node.level, 0)
 	})
 
 	it('should create a Node with custom content', () => {
 		const node = new Node({ content: 'Custom Content' })
 		assert.strictEqual(node.content, 'Custom Content')
 		assert.deepStrictEqual(node.children, [])
+		assert.strictEqual(node.indent, 0)
 	})
 
 	it('should create a Node with custom children', () => {
@@ -20,6 +23,7 @@ describe('Node', () => {
 		const node = new Node({ children: [childNode] })
 		assert.strictEqual(node.content, '')
 		assert.deepStrictEqual(node.children, [childNode])
+		assert.strictEqual(node.children[0].level, 1)
 	})
 
 	it('should create a Node with both custom content and children', () => {
@@ -27,6 +31,7 @@ describe('Node', () => {
 		const node = new Node({ content: 'Parent Node', children: [childNode] })
 		assert.strictEqual(node.content, 'Parent Node')
 		assert.deepStrictEqual(node.children, [childNode])
+		assert.strictEqual(node.children[0].level, 1)
 	})
 
 	it('should handle multi-level nested nodes correctly', () => {
@@ -42,6 +47,7 @@ describe('Node', () => {
 		assert.strictEqual(child.children.length, 1)
 		assert.strictEqual(child.children[0].content, 'Grandchild Node')
 		assert.strictEqual(child.children[0].indent, 2)
+		assert.deepStrictEqual(parentNode.flat().map(n => n.level), [0, 1, 2])
 	})
 
 	it('should convert node to string representation', () => {
@@ -60,7 +66,7 @@ describe('Node', () => {
 		})
 
 		const expectedString = 'Root\n\tChild\n\t\tGrandchild'
-		assert.strictEqual(node.toString(), expectedString)
+		assert.strictEqual(node.toString({ tab: '\t' }), expectedString)
 	})
 
 	it('should convert node to trimmed string representation', () => {
@@ -106,5 +112,41 @@ describe('Node', () => {
 		const found = container.find(node => node.level === 2, true)
 		assert.ok(found)
 		assert.ok(found === grandChild1 || found === grandChild2)
+	})
+
+	describe('Additional coverage', () => {
+		it('map works recursively', () => {
+			const root = new Node({ content: 'root' })
+			root.add(new Node({ content: 'child' }))
+			root.children[0].add(new Node({ content: 'grand' }))
+			const levels = root.map(n => n.level, true)
+			assert.deepStrictEqual(levels, [0, 1, 2])
+		})
+
+		it('toString handles no children', () => {
+			const node = new Node({ content: 'leaf', indent: 1 })
+			assert.strictEqual(node.toString({ tab: '  ' }), '  leaf')
+		})
+
+		it('toString with custom eol and trim', () => {
+			const node = new Node({ content: 'test' })
+			assert.strictEqual(node.toString({ trim: true, eol: '\r\n', tab: '\t' }), 'test')
+		})
+
+		it('static from returns existing or new', () => {
+			const existing = new Node({ content: 'old' })
+			assert.strictEqual(Node.from(existing), existing)
+			const plain = { content: 'new', children: [] }
+			const newNode = Node.from(plain)
+			assert.strictEqual(newNode.content, 'new')
+			assert.deepStrictEqual(newNode.children, [])
+		})
+
+		it('constructor maps children via from', () => {
+			const childPlain = { content: 'plain child' }
+			const node = new Node({ children: [childPlain] })
+			assert.ok(node.children[0] instanceof Node)
+			assert.strictEqual(node.children[0].content, 'plain child')
+		})
 	})
 })
