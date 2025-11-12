@@ -428,7 +428,6 @@ flowchart LR
 | `@nan0web/db` | `to(Object)` | Перетворює моделі в об’єкти для збереження |
 | `@nan0web/db-browser` | `empty()` | Перевіряє стан зберігання |
 | `@nan0web/release` | `to(NonEmptyObject)` | Формує релізи без зайвих полів |
-| `@nan0web/llimo` | `Parser` | Розбирає запити в iєрархії |
 | `@nan0web/story` | `ContainerObject` | Створює дерева сценаріїв |
 | `@nan0web/ui-react` | `typeOf`, `oneOf` | Типові пропси, валідація |
 | `@nan0web/ui-core` | `Element.from`, `to(FullObject)` | Контроль `undefined` в UI |

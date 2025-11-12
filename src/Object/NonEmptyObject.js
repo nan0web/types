@@ -1,4 +1,4 @@
-import { notEmpty } from "../index.js"
+import { notEmpty } from "../core.js"
 
 /**
  * Base class providing a `toObject` method that omits empty values.

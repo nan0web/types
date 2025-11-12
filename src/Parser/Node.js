@@ -83,7 +83,7 @@ export default class Node extends ContainerObject {
 		return [
 			prefix + this.content,
 			...this.children.map(c => c.toString({ trim, tab, eol }))
-		].join(eol)
+		].filter(Boolean).join(eol)
 	}
 
 	/**

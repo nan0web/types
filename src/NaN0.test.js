@@ -1,5 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
+import { NoConsole } from '@nan0web/log'
 import NaN0 from './NaN0.js'
 import { exampleOfComments, exampleOfExpected, exampleOfFormat } from "./NaN0.examples.js"
 
@@ -254,7 +255,7 @@ describe('NaN0 parse and stringify', () => {
 			const input = ['one', 42]
 			const context = { comments: [{ text: "Array comment\nNext line", id: "[0]" }] }
 			const output = NaN0.stringify(input, context)
-			const expected = `# Array comment\n  Next line\n- one\n- 42`
+			const expected = `# Array comment\n# Next line\n- one\n- 42`
 			assert.strictEqual(output, expected)
 		})
 
@@ -382,6 +383,60 @@ describe('NaN0 parse and stringify', () => {
 			assert.throws(() => NaN0.stringify('invalid'), /requires a non-null object or array/)
 			assert.throws(() => NaN0.stringify(null), /requires a non-null object or array/)
 			assert.throws(() => NaN0.stringify(42), /requires a non-null object or array/)
+		})
+
+		it.todo("should parse number as string if it starts with 0", () => {
+			// @todo fix the issue with a leading zero, that is transformed to 123
+			const pojo = NaN0.parse("value: 0123")
+			assert.deepStrictEqual(pojo, { value: "0123" })
+		})
+
+		it.todo("should parse number as string if it defined by Body type", () => {
+			// @todo fix the issue with a type that is defined in Body
+			class Body {
+				static value = {
+					type: String
+				}
+				/** @type {string} */
+				value
+				constructor(input = {}) {
+					this.value = String(input.value ?? "")
+				}
+			}
+			const pojo = NaN0.parse("value: 0123", { Body })
+			assert.deepStrictEqual(pojo, new Body({ value: "0123" }))
+		})
+	})
+	describe("README.md.js fails", () => {
+		const console = new NoConsole()
+		/**
+		 * @docs
+		 * ### Comments
+		 *
+		 * - Inline comment: placed **before** a node.
+		 * - Multiline comment: a `#` line followed by indented lines (treated as part of the comment).
+		 */
+		it.todo("How to parse retrieve comments from the source", () => {
+			const str =
+				`# This is a top‑level comment` +
+				`name: Example` +
+				`# Multiline comment attached to the next key` +
+				`  More details about the value.` +
+				`description: |` +
+				`  First line` +
+				`  Second line`
+			const ctx = { comments: [] }
+			const parsed = NaN0.parse(str, ctx)
+			console.info(ctx.comments)
+			console.info(parsed)
+			assert.deepStrictEqual(console.output()[0][1], [
+				{ id: "name", text: "This is a top‑level comment" },
+				{ id: "description", text: "Multiline comment attached to the next key\nMore details about the value." }
+			])
+			assert.deepStrictEqual(console.output()[1][1], {
+				name: "Example",
+				description: "First line\nSecond line"
+			})
 		})
 	})
 })

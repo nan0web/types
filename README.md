@@ -1,8 +1,6 @@
 # @nan0web/types
 
-|[Status](https://github.com/nan0web/monorepo/blob/main/system.md#написання-сценаріїв)|Documentation|Test coverage|Features|Npm version|
-|---|---|---|---|---|
- |🟢 `99.7%` |🧪 [English 🏴󠁧󠁢󠁥󠁮󠁧󠁿](https://github.com/nan0web/types/blob/main/README.md)<br />[Українською 🇺🇦](https://github.com/nan0web/types/blob/main/docs/uk/README.md) |🟢 `99.3%` |✅ d.ts 📜 system.md 🕹️ playground |1.0.3 |
+<!-- %PACKAGE_STATUS% -->
 
 A minimal, zero-dependency toolkit for managing JavaScript data structures,
 conversions, and type validation. Built for [nan0web philosophy](https://github.com/nan0web/monorepo/blob/main/system.md#nanweb-nan0web),
@@ -54,6 +52,7 @@ How to use `match(regex)`?
 import { match } from "@nan0web/types"
 const fn = match(/^hello$/)
 console.info(fn("hello", "world")) // ← true
+console.info(fn("world")) // ← false
 ```
 ### `Enum(...values)`
 
@@ -247,7 +246,6 @@ class A { x = 9 }
 class B extends A { get y() { return this.x ** 2 } }
 const obj = to(FullObject)(new B())
 console.info(obj) // ← { x: 9, y: 81 }
-
 ```
 ### UndefinedObject
 
@@ -259,7 +257,35 @@ import { to, UndefinedObject } from "@nan0web/types"
 const data = { x: 9, y: undefined }
 const obj = to(UndefinedObject)(data)
 console.info(obj) // ← { x: 9, y: undefined }
+```
+### Strict Boolean cast
 
+`to("boolean")` (or `to(Boolean)`) coerces any value to a boolean.
+The conversion follows JavaScript truthiness rules.
+
+How to cast to Boolean with strict cast?
+```js
+const fn = to("boolean")
+console.info(fn(1))   // ← true
+console.info(fn(0))   // ← false
+console.info(fn(""))  // ← false
+console.info(fn("yes")) // ← true
+console.info(fn("no")) // ← true
+console.info(fn("false")) // ← true
+console.info(fn(false)) // ← false
+```
+### Strict Number cast
+
+`to("number")` (or `to(Number)`) converts values to numbers.
+Non‑numeric strings become `NaN`; `null`/`undefined` become `0`.
+
+How to cast to Number with strict cast?
+```js
+const fn = to("number")
+console.info(fn("42"))   // ← 42
+console.info(fn("foo"))  // ← NaN
+console.info(fn(null))   // ← 0
+console.info(fn(undefined)) // ← 0
 ```
 ### `clone(obj)`
 Deep clones objects, arrays, Maps, Sets, and custom classes.
@@ -270,7 +296,6 @@ import { clone } from "@nan0web/types"
 const original = { a: { b: [1, 2] } }
 const copy = clone(original)
 console.info(copy) // ← { a: { b: [ 1, 2 ] } }
-
 ```
 ### `merge(target, source, options?)`
 Deeply merges two plain objects or arrays, optionally preserving uniqueness.
@@ -283,7 +308,6 @@ const b = { y: 2, nested: { b: 2 } }
 
 const result = merge(a, b)
 console.info(result) // ← { x: 1, nested: { a: 1, b: 2 }, y: 2 }
-
 ```
 ### `isConstructible(fn)`
 Checks whether a function can be called with `new`.
@@ -306,7 +330,11 @@ const parser = new Parser({ tab: "  " })
 const text = "root\n  child\n    subchild\nsibling to root"
 const tree = parser.decode(text)
 console.info(tree)
-console.info(tree.toString({ trim: true })) // ← "root\nchild\nsubchild\nsibling to root"
+console.info(tree.toString({ tab: "-" }))
+// root
+// -child
+// --subchild
+// sibling to root"
 ```
 ### `Node`
 Generic tree node that holds content and children.
@@ -322,8 +350,161 @@ console.info(String(root)) // ← "root\n\tchild"
 ```
 ## NaN0 Format
 
-This format provides minimalistic, human-friendly serialization for typed data.
+The **NaN0** format is a tiny, human‑readable serialization language designed
+for typed data. It balances readability with strict typing rules, making it
+ideal for configuration files, test fixtures, and data exchange where
+minimal syntax noise is required.
 
+### General Rules
+
+- **Top‑level** value may be an **object** or an **array**.
+- **Indentation** (two spaces) defines nesting – the same principle as in Python.
+- **Comments** start with `#` and may appear before any node (object key,
+  array item, or empty container). Consecutive comment lines are merged.
+- **Empty containers**
+  - `[]` → empty array
+  - `{}` → empty object
+  - If an empty container has a preceding comment, the comment is attached to the
+    container (array index `[0]` for top‑level arrays, `.` for top‑level objects).
+
+### Primitive Types
+
+| Type      | Representation                               | Example                               |
+|----------|---------------------------------------------|---------------------------------------|
+| **String** | Plain text **unless** it contains whitespace,
+`:` or `#`, it must be quoted with double quotes. |
+`"escaped \" quote"` |
+| **Multiline String** | Prefixed by `|` on the value line; following indented lines form the
+string (newlines are preserved). |
+`desc: |\n  line one\n  line two` |
+| **Number** | Digits may contain underscores for readability.
+Both integers and floats are supported. |
+`160_000_500.345` |
+| **Boolean** | Literal `true` or `false`. |
+`true` |
+| **Null** | Literal `null`. |
+`null` |
+| **Date / DateTime** | ISO‑8601 without timezone (`YYYY‑MM‑DD`) or with time
+(`YYYY‑MM‑DDTHH:MM:SS`). |
+`2024-11-13`<br>`2024-11-13T19:34:00` |
+
+### Objects
+
+- Defined by a series of `key: value` lines.
+- Keys are plain text (no quoting needed) and may contain spaces.
+- Nested objects are expressed by increasing indentation.
+
+How to store objects in NaN0 document into a typed class hierarchy?
+```js
+class Address {
+/** @type {string} */
+	city = ""
+/** @type {string} */
+	zip = ""
+	constructor(input = {}) {
+		const {
+			city = this.city,
+			zip = this.zip,
+		} = input
+		this.city = String(city)
+		this.zip = String(zip)
+	}
+}
+class Person {
+	name = ""
+	age = 0
+/** @type {Address} */
+	address = new Address()
+	constructor(input = {}) {
+		const {
+			name = this.name,
+			age = this.age,
+			address = this.address,
+		} = input
+		this.name = String(name)
+		this.age = Number(age)
+		this.address = new Address(address)
+	}
+}
+const ctx = {
+	comments: [],
+	Body: class Body {
+		person = new Person()
+		constructor(input = {}) {
+			this.person = new Person(input.person ?? {})
+		}
+	}
+}
+const str = `person:\n` +
+	`  name: John Doe\n` +
+	`  age: 30\n` +
+	`  address:\n` +
+	`    city: Kyiv\n` +
+	`    zip: 10010\n`
+const pojo = to(Object)(NaN0.parse(str, ctx))
+console.info(pojo)
+// person: {
+//   name: "John Doe", age: 30, address: {
+//     city: "Kyiv", zip: "10010"
+//   }
+// }
+```
+ * ### Parsing & Stringifying
+
+ * The library exports two main helpers:
+
+ * - `NaN0.parse(text [, context])`
+ *   - Returns a JavaScript value.
+ *   - `context.comments` will contain extracted comments with their
+ *     identifier (`.` for root object, `[0]` for top‑level array index, or the
+ *     key name for objects).
+
+ * - `NaN0.stringify(value [, context])`
+ *   - Produces a NaN0 string.
+ *   - `context.comments` can be used to inject comments back.
+
+ * Both operations are **round‑trip safe**: `parse(stringify(x))` returns a deep‑equal
+ * structure to `x` (including `Date` objects, numbers with underscores, etc.).
+
+ * > Comments are not stringifying yet, todo
+
+ * ### Quick Example
+
+ * The format is intentionally **minimal** – there are no commas, brackets (except for
+ * empty containers), or other punctuation that could clutter the visual structure.
+
+ * For a complete reference see `src/NaN0.js` and the test suite
+ * `src/NaN0.test.js`.
+ */
+How to work with NaN0 format?
+```js
+import NaN0 from '@nan0web/types'
+const example = `# Sample NaN0\n` +
+	`person:\n` +
+	`  name: Bob\n` +
+	`  age: 42\n` +
+	`  address:\n` +
+	`    city: Lviv\n` +
+	`    zip: 79_000\n` +
+	`  tags:\n` +
+	`    - developer\n` +
+	`    - |\n` +
+	`      multi\n` +
+	`      line`
+const ctx = { comments: [] }
+const parsed = NaN0.parse(example, ctx)
+const stringified = NaN0.stringify(parsed, ctx)
+console.info(ctx.comments)
+// [ { id: "person", text: "Sample NaN0" } ]
+console.info(stringified)
+// # Sample NaN0
+// person:
+//   name: Bob
+//   age: 42
+//   address:
+//     city: Lviv
+//     zip: 79_000
+```
 ## Playground
 
 How to run CLI sandbox?
@@ -341,8 +522,8 @@ Uses `d.ts` to provide autocomplete hints.
 
 ## Contributing
 
-How to contribute? - [check here](https://github.com/nan0web/types/blob/main/CONTRIBUTING.md)
+How to contribute? - [check here]($pkgURL/blob/main/CONTRIBUTING.md)
 
 ## License
 
-How to license? - [ISC LICENSE](https://github.com/nan0web/types/blob/main/LICENSE) file.
+How to license? - [ISC LICENSE]($pkgURL/blob/main/LICENSE) file.

@@ -69,7 +69,12 @@ export default class Parser {
 
 		for (let i = 0; i < rows.length; i++) {
 			const raw = rows[i]
-			// skip completely empty lines
+
+			// 1️⃣ always ignore completely empty lines – they carry no semantic value
+			if (raw.trim() === "") {
+				continue
+			}
+			// 2️⃣ skip lines matching any of the supplied skip patterns / functions
 			if (this.skip.some((s => "function" === typeof s ? s(raw) : s === raw))) {
 				continue
 			}
@@ -82,7 +87,12 @@ export default class Parser {
 				stack.pop()
 			}
 			if (0 === stack.length) {
-				throw new Error("Parsing error at row #" + (i + 1))
+				throw new Error([
+					["Parsing error at row #", (i + 1)],
+					...rows.slice(Math.max(0, i - 3), Math.max(0, i)).map((s, j) => [`#${i - 3 + j} > ${s}`]),
+					[`#${i + 1} > ${rows[i]}`],
+					...rows.slice(Math.min(0, i), Math.min(0, i + 3)).map((s, j) => [`#${i + j} > ${s}`]),
+				].map(s => s.join("")).join("\n"))
 			}
 			const parent = stack[stack.length - 1].node
 

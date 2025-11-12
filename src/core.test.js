@@ -353,6 +353,64 @@ describe("nano-types utilities", () => {
 			const result = to(Object)(to(NonEmptyObject)(input))
 			assert.deepStrictEqual(result, { x: 9 })
 		})
+
+		it("should convert boolean", () => {
+			assert.equal(to("boolean")(9), true)
+			assert.equal(to("boolean")({}), true)
+			assert.equal(to("boolean")(1), true)
+			assert.equal(to("boolean")(0), false)
+			assert.equal(to("boolean")(""), false)
+			assert.equal(to("boolean")(null), false)
+			assert.equal(to(Boolean)(9), true)
+			assert.equal(to(Boolean)({}), true)
+			assert.equal(to(Boolean)(1), true)
+			assert.equal(to(Boolean)(0), false)
+			assert.equal(to(Boolean)(""), false)
+			assert.equal(to(Boolean)(null), false)
+		})
+
+		it("should convert number", () => {
+			assert.equal(to("number")(9), 9)
+			assert.equal(to("number")({}), NaN)
+			assert.equal(to("number")(1), 1)
+			assert.equal(to("number")(0), 0)
+			assert.equal(to("number")("3"), 3)
+			assert.equal(to("number")(null), 0)
+			assert.equal(to("number")(), 0)
+			assert.equal(to(Number)(9), 9)
+			assert.equal(to(Number)({}), NaN)
+			assert.equal(to(Number)(1), 1)
+			assert.equal(to(Number)(0), 0)
+			assert.equal(to(Number)("3"), 3)
+			assert.equal(to(Number)(null), 0)
+			assert.equal(to(Number)(), 0)
+		})
+
+		it("should convert number", () => {
+			class A {
+				name = ""
+				constructor(name) {
+					this.name = String(name)
+				}
+				toString() {
+					return `<${this.name}>`
+				}
+			}
+			assert.equal(to("string")(9), "9")
+			assert.equal(to("string")({}), "[object Object]")
+			assert.equal(to("string")(new A(1)), "<1>")
+			assert.equal(to("string")(0), "0")
+			assert.equal(to("string")("3"), "3")
+			assert.equal(to("string")(null), "null")
+			assert.equal(to("string")(), "undefined")
+			assert.equal(to(String)(9), "9")
+			assert.equal(to(String)({}), "[object Object]")
+			assert.equal(to(String)(new A(3)), "<3>")
+			assert.equal(to(String)(0), "0")
+			assert.equal(to(String)("3"), "3")
+			assert.equal(to(String)(null), "null")
+			assert.equal(to(String)(), "undefined")
+		})
 	})
 
 	describe("match", () => {

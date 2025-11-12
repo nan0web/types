@@ -34,7 +34,8 @@
 		"prepublishOnly": "npm test && npm run build",
 		"play": "node play/main.js",
 		"release": "nan0release publish",
-		"test": "node --test \"src/**/*.test.js\" | nan0test parse --fail",
+		"test": "node --test \"src/**/*.test.js\"",
+		"test:nan0test": "node --test \"src/**/*.test.js\" | nan0test parse --fail",
 		"test:docs": "node --test src/README.md.js",
 		"test:release": "node --test \"releases/**/*.test.js\"",
 		"test:coverage": "node --experimental-test-coverage --test-coverage-include=\"src/**/*.js\" --test-coverage-exclude=\"src/**/*.test.js\" --test-coverage-exclude=\"src/**/index.js\" --test \"src/**/*.test.js\"",
@@ -57,9 +58,8 @@
 	"packageManager": "pnpm@10.11.0",
 	"devDependencies": {
 		"husky": "^9.1.7",
-		"@nan0web/llimo": "workspace:*",
-		"@nan0web/release": "workspace:*",
-		"@nan0web/test": "workspace:*",
-		"@nan0web/ui-cli": "workspace:*"
+		"@nan0web/release": "1.0.1",
+		"@nan0web/test": "1.0.2",
+		"@nan0web/ui-cli": "1.0.0"
 	}
 }
