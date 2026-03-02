@@ -11,15 +11,9 @@
  * const result = merge({ arr: [1, 2] }, [{ $clear: true }, 3, 4])
  * // result => { arr: [3, 4] }
  */
-export default function merge(
-	target: any,
-	source: any,
-	options?:
-		| {
-				unique?: boolean | undefined
-		  }
-		| undefined,
-): any
+export default function merge(target: any, source: any, options?: {
+    unique?: boolean | undefined;
+}): any;
 /**
  * Return a new array with duplicate items removed.
  * Equality is performed via JSON.stringify (sufficient for current tests).
@@ -27,4 +21,4 @@ export default function merge(
  * @param {Array} arr
  * @returns {Array}
  */
-export function uniqArray(arr: any[]): any[]
+export function uniqArray(arr: any[]): any[];
