@@ -1,14 +1,32 @@
 import { describe, it, before, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import DB from '@nan0web/db-fs'
-import { NoConsole } from "@nan0web/log"
-import { DocsParser, DatasetParser } from "@nan0web/test"
+import { NoConsole } from '@nan0web/log'
+import { DocsParser, DatasetParser } from '@nan0web/test'
 import {
-	oneOf, undefinedOr, nullOr, arrayOf, typeOf, functionOf,
-	empty, equal, to, FullObject, UndefinedObject, NonEmptyObject,
-	match, Enum, clone, merge, isConstructible,
-	Parser, Node, NaN0,
+	oneOf,
+	undefinedOr,
+	nullOr,
+	arrayOf,
+	typeOf,
+	functionOf,
+	empty,
+	equal,
+	to,
+	FullObject,
+	UndefinedObject,
+	NonEmptyObject,
+	match,
+	Enum,
+	clone,
+	merge,
+	isConstructible,
+	Parser,
+	Node,
+	NaN0,
 	ContainerObject,
+	resolveAliases,
+	resolveDefaults,
 } from './index.js'
 
 const fs = new DB()
@@ -50,35 +68,35 @@ function testRender() {
 	 *
 	 * ## Installation
 	 */
-	it("How to install with npm?", () => {
+	it('How to install with npm?', () => {
 		/**
 		 * ```bash
 		 * npm install @nan0web/types
 		 * ```
 		 */
-		assert.equal(pkg.name, "@nan0web/types")
+		assert.equal(pkg.name, '@nan0web/types')
 	})
 	/**
 	 * @docs
 	 */
-	it("How to install with pnpm?", () => {
+	it('How to install with pnpm?', () => {
 		/**
 		 * ```bash
 		 * pnpm add @nan0web/types
 		 * ```
 		 */
-		assert.equal(pkg.name, "@nan0web/types")
+		assert.equal(pkg.name, '@nan0web/types')
 	})
 	/**
 	 * @docs
 	 */
-	it("How to install with yarn?", () => {
+	it('How to install with yarn?', () => {
 		/**
 		 * ```bash
 		 * yarn add @nan0web/types
 		 * ```
 		 */
-		assert.equal(pkg.name, "@nan0web/types")
+		assert.equal(pkg.name, '@nan0web/types')
 	})
 
 	/* … other tests unchanged … */
@@ -108,8 +126,8 @@ function testRender() {
 	it('How to use `match(regex)`?', () => {
 		//import { match } from "@nan0web/types"
 		const fn = match(/^hello$/)
-		console.info(fn("hello", "world")) // ← true
-		console.info(fn("world")) // ← false
+		console.info(fn('hello', 'world')) // ← true
+		console.info(fn('world')) // ← false
 		assert.equal(console.output()[0][1], true)
 		assert.equal(console.output()[1][1], false)
 	})
@@ -128,15 +146,15 @@ function testRender() {
 		//console.info(color('yellow')) // ← throws a TypeError → Enumeration must have one value of..
 		assert.equal(console.output()[0][1], 'red')
 		assert.throws(() => color('yellow'), {
-			name: "TypeError",
+			name: 'TypeError',
 			message: [
-				"Enumeration must have one value of",
-				"- red",
-				"- green",
-				"- blue",
-				"but provided",
-				"yellow"
-			].join('\n')
+				'Enumeration must have one value of',
+				'- red',
+				'- green',
+				'- blue',
+				'but provided',
+				'yellow',
+			].join('\n'),
 		})
 	})
 
@@ -147,10 +165,10 @@ function testRender() {
 	 */
 	it('How to use oneOf?', () => {
 		//import { oneOf } from "@nan0web/types"
-		const fn = oneOf("a", "b", "c")
-		console.info(fn("b")) // ← "b"
-		console.info(fn("z")) // ← undefined
-		assert.equal(console.output()[0][1], "b")
+		const fn = oneOf('a', 'b', 'c')
+		console.info(fn('b')) // ← "b"
+		console.info(fn('z')) // ← undefined
+		assert.equal(console.output()[0][1], 'b')
 		assert.equal(console.output()[1][1], undefined)
 	})
 
@@ -190,8 +208,8 @@ function testRender() {
 	it('How to map array with arrayOf(fn)?', () => {
 		//import { arrayOf } from "@nan0web/types"
 		const fn = arrayOf((x) => x.toUpperCase())
-		console.info(fn(["a", "b"])) // ← [ 'A', 'B' ]
-		assert.deepEqual(console.output()[0][1], ["A", "B"])
+		console.info(fn(['a', 'b'])) // ← [ 'A', 'B' ]
+		assert.deepEqual(console.output()[0][1], ['A', 'B'])
 	})
 
 	/**
@@ -202,7 +220,7 @@ function testRender() {
 	it('How to check type with typeOf(String)?', () => {
 		//import { typeOf } from "@nan0web/types"
 		const fn = typeOf(String)
-		console.info(fn("hello")) // ← true
+		console.info(fn('hello')) // ← true
 		console.info(fn(123)) // ← false
 		assert.equal(console.output()[0][1], true)
 		assert.equal(console.output()[1][1], false)
@@ -215,12 +233,52 @@ function testRender() {
 	 */
 	it('How to get constructor with functionOf?', () => {
 		//import { functionOf } from "@nan0web/types"
-		console.info(functionOf("hello")) // ← [Function: String]
+		console.info(functionOf('hello')) // ← [Function: String]
 		console.info(functionOf(123)) // ← [Function: Number]
 		console.info(functionOf(new Date())) // ← [Function (anonymous)]
 		assert.equal(console.output()[0][1], String)
 		assert.equal(console.output()[1][1], Number)
 		assert.ok(console.output()[2][1] instanceof Function)
+	})
+
+	/**
+	 * @docs
+	 * ### `resolveAliases(Class, input)`
+	 *
+	 * Scans static properties of a class for `alias` keys and remaps
+	 * input data accordingly. This is useful for maintaining backward
+	 * compatibility or mapping short names to descriptive property names.
+	 */
+	it('How to resolve aliases from static metadata?', () => {
+		//import { resolveAliases } from "@nan0web/types"
+		class Config {
+			static appName = { alias: 'name' }
+		}
+		const data = resolveAliases(Config, { name: 'my-app' })
+		console.info(data) // ← { appName: "my-app" }
+		assert.equal(data.appName, 'my-app')
+		assert.equal(data.name, undefined)
+	})
+
+	/**
+	 * @docs
+	 * ### `resolveDefaults(Class, target)`
+	 *
+	 * Applies `default` values from static class metadata to a target object.
+	 * This ensures your instance always has a valid initial state based on
+	 * the class schema.
+	 */
+	it('How to apply defaults from static metadata?', () => {
+		//import { resolveDefaults } from "@nan0web/types"
+		class Config {
+			static port = { default: 3000 }
+			static theme = { default: 'dark' }
+		}
+		const settings = { port: 8080 }
+		resolveDefaults(Config, settings)
+		console.info(settings) // ← { port: 8080, theme: "dark" }
+		assert.equal(settings.port, 8080)
+		assert.equal(settings.theme, 'dark')
 	})
 
 	/**
@@ -231,7 +289,7 @@ function testRender() {
 	it('How to check for empty values?', () => {
 		//import { empty } from "@nan0web/types"
 		console.info(empty(undefined)) // ← true
-		console.info(empty("")) // ← true
+		console.info(empty('')) // ← true
 		console.info(empty({})) // ← true
 		console.info(empty(null)) // ← true
 		console.info(empty([])) // ← true
@@ -251,8 +309,8 @@ function testRender() {
 	 */
 	it('How to compare values strictly with equal()?', () => {
 		//import { equal } from "@nan0web/types"
-		console.info(equal("a", "a", "b", "b")) // ← true
-		console.info(equal(1, "1")) // ← false
+		console.info(equal('a', 'a', 'b', 'b')) // ← true
+		console.info(equal(1, '1')) // ← false
 		assert.equal(console.output()[0][1], true)
 		assert.equal(console.output()[1][1], false)
 	})
@@ -267,7 +325,9 @@ function testRender() {
 	 */
 	it('How to convert using to(Object)?', () => {
 		//import { to } from "@nan0web/types"
-		class A { x = 9 }
+		class A {
+			x = 9
+		}
 		const converted = to(Object)(new A())
 		console.info(converted) // ← { x: 9 }
 		assert.deepStrictEqual(console.output()[0][1], { x: 9 })
@@ -290,17 +350,13 @@ function testRender() {
 			children = []
 			/** @param {ContainerObjectArgs & string} */
 			constructor(input = {}) {
-				if ("string" === typeof input) {
+				if ('string' === typeof input) {
 					input = { body: input }
 				}
-				const {
-					children = [],
-					body = "",
-					...rest
-				} = input
+				const { children = [], body = '', ...rest } = input
 				super(rest)
 				this.body = String(body)
-				children.map(c => this.add(c))
+				children.map((c) => this.add(c))
 			}
 			/**
 			 * Adds element to the container.
@@ -322,23 +378,26 @@ function testRender() {
 			}
 		}
 
-		const root = new B("root")
-		root.add("1st")
-		root.add("2nd")
+		const root = new B('root')
+		root.add('1st')
+		root.add('2nd')
 		console.info(root)
 		// B { body: "root", level: 0, children: [
 		//   B { body: "1st", level: 1, children: [] }
 		//   B { body: "2nd", level: 1, children: [] }
 		// ] }
 
-		assert.deepStrictEqual(console.output()[0][1], B.from({
-			body: "root",
-			level: 0,
-			children: [
-				B.from({ body: "1st", level: 1, children: [] }),
-				B.from({ body: "2nd", level: 1, children: [] }),
-			]
-		}))
+		assert.deepStrictEqual(
+			console.output()[0][1],
+			B.from({
+				body: 'root',
+				level: 0,
+				children: [
+					B.from({ body: '1st', level: 1, children: [] }),
+					B.from({ body: '2nd', level: 1, children: [] }),
+				],
+			}),
+		)
 	})
 
 	/**
@@ -350,14 +409,14 @@ function testRender() {
 	it('How to use NonEmptyObject to filter empty values?', () => {
 		//import { NonEmptyObject } from "@nan0web/types"
 		class B extends NonEmptyObject {
-			name = "Name"
-			emptyValue = ""
+			name = 'Name'
+			emptyValue = ''
 		}
 
 		const obj = new B().toObject()
 		console.info(obj) // ← { name: "Name" }
 
-		assert.deepStrictEqual(console.output()[0][1], { name: "Name" })
+		assert.deepStrictEqual(console.output()[0][1], { name: 'Name' })
 	})
 
 	/**
@@ -369,8 +428,14 @@ function testRender() {
 	 */
 	it('How to collect everything with to(FullObject)?', () => {
 		//import { to, FullObject } from "@nan0web/types"
-		class A { x = 9 }
-		class B extends A { get y() { return this.x ** 2 } }
+		class A {
+			x = 9
+		}
+		class B extends A {
+			get y() {
+				return this.x ** 2
+			}
+		}
 		const obj = to(FullObject)(new B())
 		console.info(obj) // ← { x: 9, y: 81 }
 		assert.deepStrictEqual(console.output()[0][1], { x: 9, y: 81 })
@@ -400,13 +465,13 @@ function testRender() {
 	 * The conversion follows JavaScript truthiness rules.
 	 */
 	it('How to cast to Boolean with strict cast?', () => {
-		const fn = to("boolean")
-		console.info(fn(1))   // ← true
-		console.info(fn(0))   // ← false
-		console.info(fn(""))  // ← false
-		console.info(fn("yes")) // ← true
-		console.info(fn("no")) // ← true
-		console.info(fn("false")) // ← true
+		const fn = to('boolean')
+		console.info(fn(1)) // ← true
+		console.info(fn(0)) // ← false
+		console.info(fn('')) // ← false
+		console.info(fn('yes')) // ← true
+		console.info(fn('no')) // ← true
+		console.info(fn('false')) // ← true
 		console.info(fn(false)) // ← false
 		assert.equal(console.output()[0][1], true)
 		assert.equal(console.output()[1][1], false)
@@ -425,10 +490,10 @@ function testRender() {
 	 * Non‑numeric strings become `NaN`; `null`/`undefined` become `0`.
 	 */
 	it('How to cast to Number with strict cast?', () => {
-		const fn = to("number")
-		console.info(fn("42"))   // ← 42
-		console.info(fn("foo"))  // ← NaN
-		console.info(fn(null))   // ← 0
+		const fn = to('number')
+		console.info(fn('42')) // ← 42
+		console.info(fn('foo')) // ← NaN
+		console.info(fn(null)) // ← 0
 		console.info(fn(undefined)) // ← 0
 		assert.equal(console.output()[0][1], 42)
 		assert.equal(console.output()[1][1], NaN)
@@ -474,8 +539,8 @@ function testRender() {
 	 */
 	it('How to check if function is constructible?', () => {
 		//import { isConstructible } from "@nan0web/types"
-		console.info(isConstructible(class X { })) // ← true
-		console.info(isConstructible(() => { })) // ← false
+		console.info(isConstructible(class X {})) // ← true
+		console.info(isConstructible(() => {})) // ← false
 		assert.equal(console.output()[0][1], true)
 		assert.equal(console.output()[1][1], false)
 	})
@@ -489,17 +554,17 @@ function testRender() {
 	 */
 	it('How to parse indented string with Parser?', () => {
 		//import { Parser } from "@nan0web/types"
-		const parser = new Parser({ tab: "  " })
-		const text = "root\n  child\n    subchild\nsibling to root"
+		const parser = new Parser({ tab: '  ' })
+		const text = 'root\n  child\n    subchild\nsibling to root'
 		const tree = parser.decode(text)
 		console.info(tree)
-		console.info(tree.toString({ tab: "-" }))
+		console.info(tree.toString({ tab: '-' }))
 		// root
 		// -child
 		// --subchild
 		// sibling to root"
 		assert.ok(console.output()[0][1] instanceof Node)
-		assert.equal(console.output()[1][1], "root\n-child\n--subchild\nsibling to root")
+		assert.equal(console.output()[1][1], 'root\n-child\n--subchild\nsibling to root')
 		const expected = new Node({ content: '' })
 		expected.indent = 0
 		expected.level = 0
@@ -530,11 +595,11 @@ function testRender() {
 	 */
 	it('How to build a tree with Node?', () => {
 		//import { Node } from "@nan0web/types"
-		const root = new Node({ content: "root" })
-		const child = new Node({ content: "child" })
+		const root = new Node({ content: 'root' })
+		const child = new Node({ content: 'child' })
 		root.add(child)
 		console.info(String(root)) // ← "root\n\tchild"
-		assert.equal(console.output()[0][1], "root\n\tchild")
+		assert.equal(console.output()[0][1], 'root\n\tchild')
 	})
 
 	/**
@@ -586,32 +651,25 @@ function testRender() {
 	 * - Nested objects are expressed by increasing indentation.
 	 *
 	 */
-	it("How to store objects in NaN0 document into a typed class hierarchy?", () => {
+	it('How to store objects in NaN0 document into a typed class hierarchy?', () => {
 		class Address {
 			/** @type {string} */
-			city = ""
+			city = ''
 			/** @type {string} */
-			zip = ""
+			zip = ''
 			constructor(input = {}) {
-				const {
-					city = this.city,
-					zip = this.zip,
-				} = input
+				const { city = this.city, zip = this.zip } = input
 				this.city = String(city)
 				this.zip = String(zip)
 			}
 		}
 		class Person {
-			name = ""
+			name = ''
 			age = 0
 			/** @type {Address} */
 			address = new Address()
 			constructor(input = {}) {
-				const {
-					name = this.name,
-					age = this.age,
-					address = this.address,
-				} = input
+				const { name = this.name, age = this.age, address = this.address } = input
 				this.name = String(name)
 				this.age = Number(age)
 				this.address = new Address(address)
@@ -624,9 +682,10 @@ function testRender() {
 				constructor(input = {}) {
 					this.person = new Person(input.person ?? {})
 				}
-			}
+			},
 		}
-		const str = `person:\n` +
+		const str =
+			`person:\n` +
 			`  name: John Doe\n` +
 			`  age: 30\n` +
 			`  address:\n` +
@@ -641,10 +700,13 @@ function testRender() {
 		// }
 		assert.deepStrictEqual(pojo, {
 			person: {
-				name: "John Doe", age: 30, address: {
-					city: "Kyiv", zip: "10010"
-				}
-			}
+				name: 'John Doe',
+				age: 30,
+				address: {
+					city: 'Kyiv',
+					zip: '10010',
+				},
+			},
 		})
 	})
 	/**
@@ -676,9 +738,10 @@ function testRender() {
 	 * For a complete reference see `src/NaN0.js` and the test suite
 	 * `src/NaN0.test.js`.
 	 */
-	it("How to work with NaN0 format?", () => {
+	it('How to work with NaN0 format?', () => {
 		//import NaN0 from '@nan0web/types'
-		const example = `# Sample NaN0\n` +
+		const example =
+			`# Sample NaN0\n` +
 			`person:\n` +
 			`  name: Bob\n` +
 			`  age: 42\n` +
@@ -703,7 +766,7 @@ function testRender() {
 		//   address:
 		//     city: Lviv
 		//     zip: 79_000
-		assert.deepStrictEqual(console.output()[0][1], [{ id: "person", text: "Sample NaN0" }])
+		assert.deepStrictEqual(console.output()[0][1], [{ id: 'person', text: 'Sample NaN0' }])
 		assert.equal(console.output()[1][1], example)
 		assert.deepStrictEqual(NaN0.parse(stringified), parsed)
 	})
@@ -712,7 +775,7 @@ function testRender() {
 	 * @docs
 	 * ## Playground
 	 */
-	it("How to run CLI sandbox?", () => {
+	it('How to run CLI sandbox?', () => {
 		/**
 		 * ```bash
 		 * # To try out examples and play with the library:
@@ -722,34 +785,34 @@ function testRender() {
 		 * npm run play
 		 * ```
 		 */
-		assert.ok(String(pkg.scripts?.play).includes("node play"))
+		assert.ok(String(pkg.scripts?.play).includes('node play'))
 	})
 	/**
 	 * @docs
 	 * ## Java•Script
 	 */
-	it("Uses `d.ts` to provide autocomplete hints.", () => {
-		assert.equal(pkg.types, "types/index.d.ts")
-		assert.ok(String(pkg.scripts?.build).split(" ").includes("tsc"))
+	it('Uses `d.ts` to provide autocomplete hints.', () => {
+		assert.equal(pkg.types, 'types/index.d.ts')
+		assert.ok(String(pkg.scripts?.build).split(' ').includes('tsc'))
 	})
 	/**
 	 * @docs
 	 * ## Contributing
 	 */
-	it("How to contribute? - [check here]($pkgURL/blob/main/CONTRIBUTING.md)", async () => {
-		assert.equal(pkg.scripts?.precommit, "npm test")
-		assert.equal(pkg.scripts?.prepush, "npm test")
-		assert.equal(pkg.scripts?.prepare, "husky")
+	it('How to contribute? - [check here]($pkgURL/blob/main/CONTRIBUTING.md)', async () => {
+		assert.equal(pkg.scripts?.precommit, 'npm test')
+		assert.equal(pkg.scripts?.prepush, 'npm test')
+		assert.equal(pkg.scripts?.prepare, 'husky')
 
-		const text = await fs.loadDocument("CONTRIBUTING.md")
-		const str = String(text)
+		const text = await fs.loadDocument('CONTRIBUTING.md')
+		const str = text?.content || String(text)
 		assert.ok(str.includes('# Contributing'))
 	})
 	/**
 	 * @docs
 	 * ## License
 	 */
-	it("How to license? - [ISC LICENSE]($pkgURL/blob/main/LICENSE) file.", async () => {
+	it('How to license? - [ISC LICENSE]($pkgURL/blob/main/LICENSE) file.', async () => {
 		/** @docs */
 		const text = await fs.loadDocument('LICENSE')
 		assert.ok(String(text).includes('ISC'))
@@ -763,17 +826,18 @@ function testRender() {
  */
 describe('README.md testing', testRender)
 
-describe("Rendering README.md", async () => {
-	let text = ""
-	const format = new Intl.NumberFormat("en-US").format
+describe('Rendering README.md', async () => {
+	let text = ''
+	const format = new Intl.NumberFormat('en-US').format
 	const parser = new DocsParser()
 	text = String(parser.decode(testRender))
-	await fs.saveDocument("README.md", text)
+	await fs.saveDocument('README.md', text)
 	const dataset = DatasetParser.parse(text, pkg.name)
-	await fs.saveDocument(".datasets/README.dataset.jsonl", dataset)
+	await fs.saveDocument('.datasets/README.dataset.jsonl', dataset)
 
 	it(`document is rendered in README.md [${format(Buffer.byteLength(text))}b]`, async () => {
-		const text = await fs.loadDocument("README.md")
-		assert.ok(text.includes("## License"))
+		const doc = await fs.loadDocument('README.md')
+		const str = doc?.content || String(doc)
+		assert.ok(str.includes('## License'))
 	})
 })

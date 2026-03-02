@@ -7,11 +7,11 @@ describe('ContainerObject – edge coverage', () => {
 		const root = new ContainerObject({
 			children: [
 				new ContainerObject({
-					children: [new ContainerObject()]
-				})
-			]
+					children: [new ContainerObject()],
+				}),
+			],
 		})
-		const levels = root.flat().map(c => c.level)
+		const levels = root.flat().map((c) => c.level)
 		assert.deepStrictEqual(levels, [0, 1, 2])
 	})
 

@@ -35,6 +35,7 @@
 		"play": "node play/main.js",
 		"release": "nan0release publish",
 		"test": "node --test \"src/**/*.test.js\"",
+		"test:all": "node --test \"src/**/*.test.js\" src/README.md.js",
 		"test:nan0test": "node --test \"src/**/*.test.js\" | nan0test parse --fail",
 		"test:docs": "node --test src/README.md.js",
 		"test:release": "node --test \"releases/**/*.test.js\"",
@@ -57,9 +58,12 @@
 	"license": "ISC",
 	"packageManager": "pnpm@10.11.0",
 	"devDependencies": {
-		"husky": "^9.1.7",
-		"@nan0web/release": "1.0.1",
-		"@nan0web/test": "1.0.2",
-		"@nan0web/ui-cli": "1.0.0"
+		"@nan0web/release": "*",
+		"@nan0web/test": "*",
+		"@nan0web/ui-cli": "*",
+		"husky": "^9.1.7"
+	},
+	"dependencies": {
+		"@nan0web/log": "*"
 	}
 }

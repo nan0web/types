@@ -18,7 +18,7 @@ export default class ContainerObject {
 	constructor(options = {}) {
 		const { level = 0, children = [] } = options
 		this.level = Number(level)
-		this.children = children.map(child => {
+		this.children = children.map((child) => {
 			if (child instanceof ContainerObject) {
 				child.level = this.level + 1
 				child._updateLevel()
@@ -74,7 +74,7 @@ export default class ContainerObject {
 	 * @returns {this}
 	 */
 	remove(element) {
-		this.children = this.children.filter(e => e !== element)
+		this.children = this.children.filter((e) => e !== element)
 		return this
 	}
 

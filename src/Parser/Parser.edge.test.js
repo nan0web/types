@@ -17,7 +17,8 @@ describe('Parser – edge coverage', () => {
 
 	it('decode skips lines with custom skip function (covers skip handling)', () => {
 		const parser = new Parser({
-			skip: [(row) => row.trim().startsWith('//')]
+			tab: '  ',
+			skip: [(row) => row.trim().startsWith('//')],
 		})
 		const text = [
 			'// comment line',
@@ -25,7 +26,7 @@ describe('Parser – edge coverage', () => {
 			'  // inner comment',
 			'  child',
 			'',
-			'  // trailing comment'
+			'  // trailing comment',
 		].join('\n')
 		const tree = parser.decode(text)
 		assert.strictEqual(tree.children.length, 1)

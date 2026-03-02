@@ -22,8 +22,8 @@ function clone(obj, seen = new WeakMap()) {
 		// Clone array elements (ignore possible non‑numeric properties)
 		cloned = []
 		seen.set(obj, cloned)
-		obj.forEach(item => cloned.push(clone(item, seen)))
-		Object.keys(obj).forEach(key => {
+		obj.forEach((item) => cloned.push(clone(item, seen)))
+		Object.keys(obj).forEach((key) => {
 			// Skipping numeric indices
 			if (String(Number(key)) === String(key)) return
 			cloned[key] = clone(obj[key], seen)
@@ -35,15 +35,15 @@ function clone(obj, seen = new WeakMap()) {
 		// Handle custom classes
 		cloned = new obj.constructor()
 		seen.set(obj, cloned)
-		Object.keys(obj).forEach(key => {
-			/** @type {any} */ (cloned)[key] = clone(obj[key], seen)
+		Object.keys(obj).forEach((key) => {
+			/** @type {any} */ cloned[key] = clone(obj[key], seen)
 		})
 	} else {
 		// Plain object
 		cloned = {}
 		seen.set(obj, cloned)
-		Object.keys(obj).forEach(key => {
-			/** @type {any} */ (cloned)[key] = clone(obj[key], seen)
+		Object.keys(obj).forEach((key) => {
+			/** @type {any} */ cloned[key] = clone(obj[key], seen)
 		})
 	}
 

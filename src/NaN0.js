@@ -23,16 +23,15 @@ import Node from './Parser/Node.js'
  *          classes and nested and connected business logic as it is in rea1 life.
  */
 
-
 export default class NaN0 {
-	static NEW_LINE = "\n"
-	static TAB = "  "
-	static EMPTY_ARRAY = "[]"
-	static EMPTY_DATE = "0000-00-00"
-	static EMPTY_OBJECT = "{}"
-	static MULTILINE_START = "|"
-	static VALUE_DELIMITER = [": ", /^(.+):$/]
-	static COMMENT_START = "# "
+	static NEW_LINE = '\n'
+	static TAB = '  '
+	static EMPTY_ARRAY = '[]'
+	static EMPTY_DATE = '0000-00-00'
+	static EMPTY_OBJECT = '{}'
+	static MULTILINE_START = '|'
+	static VALUE_DELIMITER = [': ', /^(.+):$/]
+	static COMMENT_START = '# '
 
 	static numberRegex = /^-?\d+(?:_\d+)*(?:\.\d+(?:_\d+)*)?$/
 	static dateRegex = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2})?(?:[+-]\d{2}:\d{2}|[+-]\d{4}|Z)?)?$/
@@ -42,6 +41,10 @@ export default class NaN0 {
 		if (s === '') return ''
 		// number first to avoid parsing as Date(ms)
 		if (this.numberRegex.test(s)) {
+			// Leading zero (but not 0 or 0.xxx) means string
+			if (s.length > 1 && s[0] === '0' && s[1] !== '.') {
+				return s
+			}
 			const cleanNum = s.replace(/_/g, '')
 			const asNum = Number(cleanNum)
 			if (!isNaN(asNum)) {
@@ -106,7 +109,12 @@ export default class NaN0 {
 			return `${dateStr}T${hours}:${minutes}:${seconds}`
 		}
 		if (typeof value === 'string') {
-			if (value.includes('"') || value.includes(this.NEW_LINE) || value.trim() === '' || /[:#]/.test(value)) {
+			if (
+				value.includes('"') ||
+				value.includes(this.NEW_LINE) ||
+				value.trim() === '' ||
+				/[:#]/.test(value)
+			) {
 				const escaped = value.replace(/"/g, '\\"')
 				return `"${escaped}"`
 			}
@@ -131,7 +139,7 @@ export default class NaN0 {
 					return { condition: cond, name: found[1] }
 				}
 			}
-			if ("string" === typeof cond && text.includes(cond)) {
+			if ('string' === typeof cond && text.includes(cond)) {
 				const [name] = text.split(cond)
 				return { condition: cond, name }
 			}
@@ -142,7 +150,7 @@ export default class NaN0 {
 	static parseComments(allChildren, startIdx = 0) {
 		let commentLines = []
 		let i = startIdx
-		let nextIdx = "."
+		let nextIdx = '.'
 		while (i < allChildren.length) {
 			const c = allChildren[i]
 			const ct = c.content.trim()
@@ -156,7 +164,10 @@ export default class NaN0 {
 			if (ct.startsWith(this.COMMENT_START)) {
 				let commentText = ct.slice(this.COMMENT_START.length).trim()
 				if (c.children.length > 0) {
-					const subComments = c.children.map(sub => sub.content.trim()).filter(sub => sub !== '').join('\n')
+					const subComments = c.children
+						.map((sub) => sub.content.trim())
+						.filter((sub) => sub !== '')
+						.join('\n')
 					if (subComments) commentText += `\n${subComments}`
 				}
 				commentLines.push(commentText)
@@ -178,7 +189,7 @@ export default class NaN0 {
 		if (i >= allChildren.length) {
 			const result = {}
 			if (topComments) {
-				context.comments?.push({ text: topComments, id: "." })
+				context.comments?.push({ text: topComments, id: '.' })
 			}
 			return result
 		}
@@ -190,7 +201,10 @@ export default class NaN0 {
 			let result = []
 			if (topComments || firstNode.children.length > 0) {
 				const emptyComments = topComments ? `${topComments}\n` : ''
-				const subComments = firstNode.children.map(c => c.content).filter(l => l.trim() !== '').join('\n')
+				const subComments = firstNode.children
+					.map((c) => c.content)
+					.filter((l) => l.trim() !== '')
+					.join('\n')
 				const allEmptyComments = subComments ? `${emptyComments}${subComments}` : emptyComments
 				if (allEmptyComments) {
 					/*  comment id for an empty array should refer to the first
@@ -210,7 +224,10 @@ export default class NaN0 {
 			let result = {}
 			if (topComments || firstNode.children.length > 0) {
 				const emptyComments = topComments ? `${topComments}\n` : ''
-				const subComments = firstNode.children.map(c => c.content).filter(l => l.trim() !== '').join('\n')
+				const subComments = firstNode.children
+					.map((c) => c.content)
+					.filter((l) => l.trim() !== '')
+					.join('\n')
 				const allEmptyComments = subComments ? `${emptyComments}${subComments}` : emptyComments
 				if (allEmptyComments) {
 					context.comments?.push({ text: allEmptyComments.trim(), id: nextIdx })
@@ -274,7 +291,10 @@ export default class NaN0 {
 			let value
 			if (valuePart === this.MULTILINE_START) {
 				// multiline
-				const lines = fieldNode.children.map(c => c.content).filter(l => l.trim() !== '').join(this.NEW_LINE)
+				const lines = fieldNode.children
+					.map((c) => c.content)
+					.filter((l) => l.trim() !== '')
+					.join(this.NEW_LINE)
 				value = lines
 			} else if (valuePart === '' && hasChildren) {
 				// container
@@ -290,7 +310,7 @@ export default class NaN0 {
 				}
 			}
 			if (currentComments) {
-				context.comments?.push({ text: currentComments, id: key || "." })
+				context.comments?.push({ text: currentComments, id: key || '.' })
 				currentComments = ''
 			}
 			obj[key] = value
@@ -298,7 +318,7 @@ export default class NaN0 {
 			currentComments = ''
 		}
 		if (currentComments) {
-			context.comments?.push({ text: currentComments, id: "." })
+			context.comments?.push({ text: currentComments, id: '.' })
 		}
 		return obj
 	}
@@ -332,19 +352,39 @@ export default class NaN0 {
 			if (!hasChildren) {
 				value = this.parseValue(content)
 			} else {
-				const foundObject = this.match(content, this.VALUE_DELIMITER)
+				const colonIdx = content.indexOf(':')
 				if (content === this.MULTILINE_START) {
-					const lines = itemNode.children.map(c => c.content).filter(l => l.trim() !== '').join(this.NEW_LINE)
+					const lines = itemNode.children
+						.map((c) => c.content)
+						.filter((l) => l.trim() !== '')
+						.join(this.NEW_LINE)
 					value = lines
-				} else if (foundObject) {
-					name = foundObject.name
-					value = { [name]: this.parseContainer(itemNode.children, level + 1) }
+				} else if (colonIdx !== -1) {
+					name = content.substring(0, colonIdx).trim()
+					const valPart = content.substring(colonIdx + 1).trim()
+					if (valPart === '') {
+						// key with no inline value → children form a nested container
+						const childrenVal = this.parseContainer(itemNode.children, level + 1)
+						value = { [name]: childrenVal }
+					} else {
+						const childrenVal = this.parseContainer(itemNode.children, level + 1)
+						value = { [name]: this.parseValue(valPart) }
+						if (childrenVal && typeof childrenVal === 'object' && !Array.isArray(childrenVal)) {
+							Object.assign(value, childrenVal)
+						} else {
+							value[name] = childrenVal
+						}
+					}
+				} else if (content === '') {
+					value = this.parseContainer(itemNode.children, level + 1)
 				} else {
-					throw new Error(`Invalid array item with children at level ${level}: "${itemNode.content}"`)
+					throw new Error(
+						`Invalid array item with children at level ${level}: "${itemNode.content}"`,
+					)
 				}
 			}
 			if (currentComments && value && typeof value === 'object') {
-				context.comments?.push({ text: currentComments, id: name || "." })
+				context.comments?.push({ text: currentComments, id: name || '.' })
 				currentComments = ''
 			}
 			arr.push(value)
@@ -352,7 +392,7 @@ export default class NaN0 {
 			currentComments = ''
 		}
 		if (currentComments) {
-			context.comments?.push({ text: currentComments, id: "[0]" })
+			context.comments?.push({ text: currentComments, id: '[0]' })
 		}
 		return arr
 	}
@@ -394,14 +434,18 @@ export default class NaN0 {
 		parent.children.push(fieldNode)
 		if (needsChildren) {
 			if (Array.isArray(value)) {
-				value.forEach(item => this.addArrayItemToNode(fieldNode, item, level + 1))
+				value.forEach((item) => this.addArrayItemToNode(fieldNode, item, level + 1))
 			} else if (typeof value === 'string') {
 				// multiline
-				const lines = value.split(this.NEW_LINE).filter(l => l.trim() !== '')
-				lines.forEach(line => fieldNode.children.push(new Node({ content: line, indent: level + 1 })))
+				const lines = value.split(this.NEW_LINE).filter((l) => l.trim() !== '')
+				lines.forEach((line) =>
+					fieldNode.children.push(new Node({ content: line, indent: level + 1 })),
+				)
 			} else {
 				// object
-				Object.entries(value).forEach(([subKey, subValue]) => this.addValueToNode(fieldNode, subValue, level + 1, subKey))
+				Object.entries(value).forEach(([subKey, subValue]) =>
+					this.addValueToNode(fieldNode, subValue, level + 1, subKey),
+				)
 			}
 		}
 	}
@@ -433,19 +477,35 @@ export default class NaN0 {
 			const keys = Object.keys(item)
 			if (keys.length === 0) {
 				content = `- ${this.EMPTY_OBJECT}`
-			} else if (keys.length === 1) {
-				const [subKey, subValue] = Object.entries(item)[0]
-				const isSubComplex = Array.isArray(subValue) ? subValue.length > 0 : (subValue && typeof subValue === 'object' && subValue !== null ? Object.keys(subValue).length > 0 : (typeof subValue === 'string' && subValue.includes(this.NEW_LINE)))
+			} else {
+				// Multiple keys: first one goes on the same line, others as children
+				const entries = Object.entries(item)
+				const [subKey, subValue] = entries[0]
+				const rest = entries.slice(1)
+
+				const isSubComplex = Array.isArray(subValue)
+					? subValue.length > 0
+					: subValue && typeof subValue === 'object' && subValue !== null
+						? Object.keys(subValue).length > 0
+						: typeof subValue === 'string' && subValue.includes(this.NEW_LINE)
+
 				if (isSubComplex) {
 					content = `- ${subKey}:`
 					needsChildren = true
 					nodeType = 'complex'
+					// Note: the subValue itself will be handled by addValueToNode inside stringify
+					// but here we have a special case where we want to append 'rest' as well.
+					// Actually, simpler: we just set needsChildren = true and let the loop below handle it.
 				} else {
 					const subValStr = this.formatValue(subValue)
 					content = `- ${subKey}: ${subValStr}`
+					needsChildren = true
+					nodeType = 'complex'
 				}
-			} else {
-				throw new Error('NaN0 array items that are objects must have exactly one key')
+
+				// The loop in stringify/addArrayItemToNode needs to handle the logic.
+				// Wait, addArrayItemToNode at line 500 handles children based on 'item'.
+				// I should probably override the logic here or pass the 'rest' to children.
 			}
 		} else {
 			const valStr = this.formatValue(item)
@@ -455,16 +515,31 @@ export default class NaN0 {
 		parent.children.push(itemNode)
 		if (needsChildren) {
 			if (nodeType === 'multiline') {
-				const lines = item.split(this.NEW_LINE).filter(l => l.trim() !== '')
-				lines.forEach(line => itemNode.children.push(new Node({ content: line, indent: level + 1 })))
+				const lines = item.split(this.NEW_LINE).filter((l) => l.trim() !== '')
+				lines.forEach((line) =>
+					itemNode.children.push(new Node({ content: line, indent: level + 1 })),
+				)
 			} else if (nodeType === 'complex') {
-				const [subKey, subValue] = Object.entries(item)[0]
-				if (typeof subValue === 'string' && subValue.includes(this.NEW_LINE)) {
-					const lines = subValue.split(this.NEW_LINE).filter(l => l.trim() !== '')
-					lines.forEach(line => itemNode.children.push(new Node({ content: line, indent: level + 1 })))
-				} else {
-					Object.entries(subValue).forEach(([k, v]) => this.addValueToNode(itemNode, v, level + 1, k))
+				const entries = Object.entries(item)
+				const [firstKey, firstValue] = entries[0]
+				const rest = entries.slice(1)
+
+				// 1. Process first value's children (if any)
+				if (Array.isArray(firstValue)) {
+					firstValue.forEach((it) => this.addArrayItemToNode(itemNode, it, level + 1))
+				} else if (firstValue && typeof firstValue === 'object' && firstValue !== null) {
+					Object.entries(firstValue).forEach(([k, v]) =>
+						this.addValueToNode(itemNode, v, level + 1, k),
+					)
+				} else if (typeof firstValue === 'string' && firstValue.includes(this.NEW_LINE)) {
+					const lines = firstValue.split(this.NEW_LINE).filter((l) => l.trim() !== '')
+					lines.forEach((line) =>
+						itemNode.children.push(new Node({ content: line, indent: level + 1 })),
+					)
 				}
+
+				// 2. Process remaining keys as children of itemNode
+				rest.forEach(([k, v]) => this.addValueToNode(itemNode, v, level + 1, k))
 			}
 		}
 	}
@@ -517,7 +592,12 @@ export default class NaN0 {
 			if (!context.comments?.length) return ''
 			const lines = context.comments
 				.filter(({ id }) => id === path)
-				.map(({ text }) => text.split('\n').map(l => `# ${l}`).join('\n'))
+				.map(({ text }) =>
+					text
+						.split('\n')
+						.map((l) => `# ${l}`)
+						.join('\n'),
+				)
 			if (lines.length === 0) return ''
 			return lines.join('\n') + '\n'
 		}
@@ -529,9 +609,9 @@ export default class NaN0 {
 				return topComment + this.EMPTY_ARRAY
 			}
 			const parent = new Node({ content: '', indent: 0 })
-			copy.forEach(item => this.addArrayItemToNode(parent, item, 0))
+			copy.forEach((item) => this.addArrayItemToNode(parent, item, 0))
 			const body = parent.children
-				.map(c => c.toString({ trim: false, tab: this.TAB, eol: this.NEW_LINE }))
+				.map((c) => c.toString({ trim: false, tab: this.TAB, eol: this.NEW_LINE }))
 				.join(this.NEW_LINE)
 			return topComment + body
 		} else {
@@ -554,7 +634,7 @@ export default class NaN0 {
 				const temp = new Node({ content: '', indent: 0 })
 				this.addValueToNode(temp, value, 0, key)
 				const fieldStr = temp.children
-					.map(c => c.toString({ trim: false, tab: this.TAB, eol: this.NEW_LINE }))
+					.map((c) => c.toString({ trim: false, tab: this.TAB, eol: this.NEW_LINE }))
 					.join(this.NEW_LINE)
 				lines.push(fieldStr)
 			}

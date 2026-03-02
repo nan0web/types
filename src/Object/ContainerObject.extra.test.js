@@ -43,7 +43,7 @@ describe('ContainerObject – extended edge cases', () => {
 		root.add(child)
 		child.add(grand)
 
-		const result = root.filter(node => node.level === 2, true)
+		const result = root.filter((node) => node.level === 2, true)
 		assert.deepStrictEqual(result, [grand])
 	})
 
@@ -53,7 +53,7 @@ describe('ContainerObject – extended edge cases', () => {
 		const child2 = new ContainerObject()
 		root.add(child1).add(child2)
 
-		const transformed = root.map(node => node.level * 10, true)
+		const transformed = root.map((node) => node.level * 10, true)
 		assert.deepStrictEqual(transformed, [0, 10, 10])
 	})
 
@@ -96,7 +96,7 @@ describe('ContainerObject – extended edge cases', () => {
 	it('filter skips non-matching in recursive', () => {
 		const root = new ContainerObject()
 		root.add(new ContainerObject())
-		const result = root.filter(n => n.level === 2, true)
+		const result = root.filter((n) => n.level === 2, true)
 		assert.deepStrictEqual(result, [])
 	})
 

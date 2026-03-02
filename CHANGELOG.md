@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2025-08-04
 
 ### Added
+
 - NANO format parser and stringifier for structured data storage
 - ContainerObject class for managing nested object hierarchies
 - Type conversion utilities (`to`, `typeOf`, `functionOf`)

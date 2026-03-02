@@ -94,10 +94,13 @@ describe('ContainerObject', () => {
 
 		it('should find children matching a condition recursively', () => {
 			const { container, grandChild1, grandChild2 } = setupTree()
-			const found = container.find(node => node.level === 2, true)
+			const found = container.find((node) => node.level === 2, true)
 			assert.ok(found)
 			assert.ok(found === grandChild1 || found === grandChild2)
-			assert.strictEqual(container.find(() => true), container.children[0])
+			assert.strictEqual(
+				container.find(() => true),
+				container.children[0],
+			)
 		})
 
 		it('should flatten all nested children', () => {
@@ -113,9 +116,9 @@ describe('ContainerObject', () => {
 
 		it('filter returns expected results', () => {
 			const { container } = setupTree()
-			const level1 = container.filter(n => n.level === 1, true)
+			const level1 = container.filter((n) => n.level === 1, true)
 			assert.strictEqual(level1.length, 2)
-			const level2 = container.filter(n => n.level === 2, true)
+			const level2 = container.filter((n) => n.level === 2, true)
 			assert.strictEqual(level2.length, 2)
 			assert.deepStrictEqual(container.filter(), container.children)
 		})
@@ -129,9 +132,9 @@ describe('ContainerObject', () => {
 
 			container.add(child1).add(child2)
 
-			const levels = container.map(child => child.level)
+			const levels = container.map((child) => child.level)
 			assert.deepStrictEqual(levels, [1, 1])
-			const allLevels = container.map(c => c.level, true)
+			const allLevels = container.map((c) => c.level, true)
 			assert.deepStrictEqual(allLevels, [0, 1, 1])
 		})
 
@@ -153,9 +156,12 @@ describe('ContainerObject', () => {
 	describe('Constructor and factory', () => {
 		it('constructor sets child levels recursively via map', () => {
 			const root = new ContainerObject({
-				children: [new ContainerObject({ children: [new ContainerObject()] })]
+				children: [new ContainerObject({ children: [new ContainerObject()] })],
 			})
-			assert.deepStrictEqual(root.flat().map(c => c.level), [0, 1, 2])
+			assert.deepStrictEqual(
+				root.flat().map((c) => c.level),
+				[0, 1, 2],
+			)
 		})
 
 		it('static from creates or returns instance', () => {

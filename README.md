@@ -51,8 +51,8 @@ How to use `match(regex)`?
 ```js
 import { match } from "@nan0web/types"
 const fn = match(/^hello$/)
-console.info(fn("hello", "world")) // ← true
-console.info(fn("world")) // ← false
+console.info(fn('hello', 'world')) // ← true
+console.info(fn('world')) // ← false
 ```
 ### `Enum(...values)`
 
@@ -72,9 +72,9 @@ Returns a value if it exists in the list, otherwise returns undefined.
 How to use oneOf?
 ```js
 import { oneOf } from "@nan0web/types"
-const fn = oneOf("a", "b", "c")
-console.info(fn("b")) // ← "b"
-console.info(fn("z")) // ← undefined
+const fn = oneOf('a', 'b', 'c')
+console.info(fn('b')) // ← "b"
+console.info(fn('z')) // ← undefined
 ```
 ### `undefinedOr(fn)`
 Applies `fn` only if the value is not `undefined`, otherwise returns `undefined`.
@@ -103,7 +103,7 @@ How to map array with arrayOf(fn)?
 ```js
 import { arrayOf } from "@nan0web/types"
 const fn = arrayOf((x) => x.toUpperCase())
-console.info(fn(["a", "b"])) // ← [ 'A', 'B' ]
+console.info(fn(['a', 'b'])) // ← [ 'A', 'B' ]
 ```
 ### `typeOf(Fn)`
 Checks if value is instance of the given type (or primitive).
@@ -112,7 +112,7 @@ How to check type with typeOf(String)?
 ```js
 import { typeOf } from "@nan0web/types"
 const fn = typeOf(String)
-console.info(fn("hello")) // ← true
+console.info(fn('hello')) // ← true
 console.info(fn(123)) // ← false
 ```
 ### `functionOf(value)`
@@ -121,9 +121,41 @@ Attempts to return the constructor for a given value.
 How to get constructor with functionOf?
 ```js
 import { functionOf } from "@nan0web/types"
-console.info(functionOf("hello")) // ← [Function: String]
+console.info(functionOf('hello')) // ← [Function: String]
 console.info(functionOf(123)) // ← [Function: Number]
 console.info(functionOf(new Date())) // ← [Function (anonymous)]
+```
+### `resolveAliases(Class, input)`
+
+Scans static properties of a class for `alias` keys and remaps
+input data accordingly. This is useful for maintaining backward
+compatibility or mapping short names to descriptive property names.
+
+How to resolve aliases from static metadata?
+```js
+import { resolveAliases } from "@nan0web/types"
+class Config {
+	static appName = { alias: 'name' }
+}
+const data = resolveAliases(Config, { name: 'my-app' })
+console.info(data) // ← { appName: "my-app" }
+```
+### `resolveDefaults(Class, target)`
+
+Applies `default` values from static class metadata to a target object.
+This ensures your instance always has a valid initial state based on
+the class schema.
+
+How to apply defaults from static metadata?
+```js
+import { resolveDefaults } from "@nan0web/types"
+class Config {
+	static port = { default: 3000 }
+	static theme = { default: 'dark' }
+}
+const settings = { port: 8080 }
+resolveDefaults(Config, settings)
+console.info(settings) // ← { port: 8080, theme: "dark" }
 ```
 ### `empty(...values)`
 Checks if any of provided values are considered empty.
@@ -132,7 +164,7 @@ How to check for empty values?
 ```js
 import { empty } from "@nan0web/types"
 console.info(empty(undefined)) // ← true
-console.info(empty("")) // ← true
+console.info(empty('')) // ← true
 console.info(empty({})) // ← true
 console.info(empty(null)) // ← true
 console.info(empty([])) // ← true
@@ -144,8 +176,8 @@ Compares pairs of arguments for strict equality (e.g., `equal(a, b, c, d)` → `
 How to compare values strictly with equal()?
 ```js
 import { equal } from "@nan0web/types"
-console.info(equal("a", "a", "b", "b")) // ← true
-console.info(equal(1, "1")) // ← false
+console.info(equal('a', 'a', 'b', 'b')) // ← true
+console.info(equal(1, '1')) // ← false
 ```
 ## Conversions & Utilities
 
@@ -156,7 +188,9 @@ Converts values into target type-friendly representations (e.g., `.toObject()` o
 How to convert using to(Object)?
 ```js
 import { to } from "@nan0web/types"
-class A { x = 9 }
+class A {
+	x = 9
+}
 const converted = to(Object)(new A())
 console.info(converted) // ← { x: 9 }
 ```
@@ -170,23 +204,19 @@ How to use NonEmptyObject to filter empty values?
 import { ContainerObject } from "@nan0web/types"
 /** @typedef {import("@nan0web/types/types/Object/ContainerObject").ContainerObjectArgs} ContainerObjectArgs */
 class B extends ContainerObject {
-/** @type {string} */
+	/** @type {string} */
 	body
-/** @type {B[]} */
+	/** @type {B[]} */
 	children = []
-/** @param {ContainerObjectArgs & string} */
+	/** @param {ContainerObjectArgs & string} */
 	constructor(input = {}) {
-		if ("string" === typeof input) {
+		if ('string' === typeof input) {
 			input = { body: input }
 		}
-		const {
-			children = [],
-			body = "",
-			...rest
-		} = input
+		const { children = [], body = '', ...rest } = input
 		super(rest)
 		this.body = String(body)
-		children.map(c => this.add(c))
+		children.map((c) => this.add(c))
 	}
 /**
 	 * Adds element to the container.
@@ -207,16 +237,14 @@ class B extends ContainerObject {
 		return new B(input)
 	}
 }
-
-const root = new B("root")
-root.add("1st")
-root.add("2nd")
+const root = new B('root')
+root.add('1st')
+root.add('2nd')
 console.info(root)
 // B { body: "root", level: 0, children: [
 //   B { body: "1st", level: 1, children: [] }
 //   B { body: "2nd", level: 1, children: [] }
 // ] }
-
 ```
 ### NonEmptyObject
 
@@ -226,13 +254,11 @@ How to use NonEmptyObject to filter empty values?
 ```js
 import { NonEmptyObject } from "@nan0web/types"
 class B extends NonEmptyObject {
-	name = "Name"
-	emptyValue = ""
+	name = 'Name'
+	emptyValue = ''
 }
-
 const obj = new B().toObject()
 console.info(obj) // ← { name: "Name" }
-
 ```
 ### FullObject
 
@@ -242,8 +268,14 @@ including those from prototype chain (like getters).
 How to collect everything with to(FullObject)?
 ```js
 import { to, FullObject } from "@nan0web/types"
-class A { x = 9 }
-class B extends A { get y() { return this.x ** 2 } }
+class A {
+	x = 9
+}
+class B extends A {
+	get y() {
+		return this.x ** 2
+	}
+}
 const obj = to(FullObject)(new B())
 console.info(obj) // ← { x: 9, y: 81 }
 ```
@@ -265,13 +297,13 @@ The conversion follows JavaScript truthiness rules.
 
 How to cast to Boolean with strict cast?
 ```js
-const fn = to("boolean")
-console.info(fn(1))   // ← true
-console.info(fn(0))   // ← false
-console.info(fn(""))  // ← false
-console.info(fn("yes")) // ← true
-console.info(fn("no")) // ← true
-console.info(fn("false")) // ← true
+const fn = to('boolean')
+console.info(fn(1)) // ← true
+console.info(fn(0)) // ← false
+console.info(fn('')) // ← false
+console.info(fn('yes')) // ← true
+console.info(fn('no')) // ← true
+console.info(fn('false')) // ← true
 console.info(fn(false)) // ← false
 ```
 ### Strict Number cast
@@ -281,10 +313,10 @@ Non‑numeric strings become `NaN`; `null`/`undefined` become `0`.
 
 How to cast to Number with strict cast?
 ```js
-const fn = to("number")
-console.info(fn("42"))   // ← 42
-console.info(fn("foo"))  // ← NaN
-console.info(fn(null))   // ← 0
+const fn = to('number')
+console.info(fn('42')) // ← 42
+console.info(fn('foo')) // ← NaN
+console.info(fn(null)) // ← 0
 console.info(fn(undefined)) // ← 0
 ```
 ### `clone(obj)`
@@ -305,7 +337,6 @@ How to merge two objects?
 import { merge } from "@nan0web/types"
 const a = { x: 1, nested: { a: 1 } }
 const b = { y: 2, nested: { b: 2 } }
-
 const result = merge(a, b)
 console.info(result) // ← { x: 1, nested: { a: 1, b: 2 }, y: 2 }
 ```
@@ -315,8 +346,8 @@ Checks whether a function can be called with `new`.
 How to check if function is constructible?
 ```js
 import { isConstructible } from "@nan0web/types"
-console.info(isConstructible(class X { })) // ← true
-console.info(isConstructible(() => { })) // ← false
+console.info(isConstructible(class X {})) // ← true
+console.info(isConstructible(() => {})) // ← false
 ```
 ## Parser & Tree Structures
 
@@ -326,11 +357,11 @@ Basic indentation-based document parser: splits rows into `Node` hierarchy.
 How to parse indented string with Parser?
 ```js
 import { Parser } from "@nan0web/types"
-const parser = new Parser({ tab: "  " })
-const text = "root\n  child\n    subchild\nsibling to root"
+const parser = new Parser({ tab: '  ' })
+const text = 'root\n  child\n    subchild\nsibling to root'
 const tree = parser.decode(text)
 console.info(tree)
-console.info(tree.toString({ tab: "-" }))
+console.info(tree.toString({ tab: '-' }))
 // root
 // -child
 // --subchild
@@ -343,8 +374,8 @@ You can extend it into format-specific nodes (e.g., Markdown AST).
 How to build a tree with Node?
 ```js
 import { Node } from "@nan0web/types"
-const root = new Node({ content: "root" })
-const child = new Node({ content: "child" })
+const root = new Node({ content: 'root' })
+const child = new Node({ content: 'child' })
 root.add(child)
 console.info(String(root)) // ← "root\n\tchild"
 ```
@@ -397,30 +428,23 @@ Both integers and floats are supported. |
 How to store objects in NaN0 document into a typed class hierarchy?
 ```js
 class Address {
-/** @type {string} */
-	city = ""
-/** @type {string} */
-	zip = ""
+	/** @type {string} */
+	city = ''
+	/** @type {string} */
+	zip = ''
 	constructor(input = {}) {
-		const {
-			city = this.city,
-			zip = this.zip,
-		} = input
+		const { city = this.city, zip = this.zip } = input
 		this.city = String(city)
 		this.zip = String(zip)
 	}
 }
 class Person {
-	name = ""
+	name = ''
 	age = 0
-/** @type {Address} */
+	/** @type {Address} */
 	address = new Address()
 	constructor(input = {}) {
-		const {
-			name = this.name,
-			age = this.age,
-			address = this.address,
-		} = input
+		const { name = this.name, age = this.age, address = this.address } = input
 		this.name = String(name)
 		this.age = Number(age)
 		this.address = new Address(address)
@@ -433,9 +457,10 @@ const ctx = {
 		constructor(input = {}) {
 			this.person = new Person(input.person ?? {})
 		}
-	}
+	},
 }
-const str = `person:\n` +
+const str =
+	`person:\n` +
 	`  name: John Doe\n` +
 	`  age: 30\n` +
 	`  address:\n` +
@@ -449,37 +474,38 @@ console.info(pojo)
 //   }
 // }
 ```
- * ### Parsing & Stringifying
+### Parsing & Stringifying
 
- * The library exports two main helpers:
+The library exports two main helpers:
 
- * - `NaN0.parse(text [, context])`
- *   - Returns a JavaScript value.
- *   - `context.comments` will contain extracted comments with their
- *     identifier (`.` for root object, `[0]` for top‑level array index, or the
- *     key name for objects).
+- `NaN0.parse(text [, context])`
+  - Returns a JavaScript value.
+  - `context.comments` will contain extracted comments with their
+    identifier (`.` for root object, `[0]` for top‑level array index, or the
+    key name for objects).
 
- * - `NaN0.stringify(value [, context])`
- *   - Produces a NaN0 string.
- *   - `context.comments` can be used to inject comments back.
+- `NaN0.stringify(value [, context])`
+  - Produces a NaN0 string.
+  - `context.comments` can be used to inject comments back.
 
- * Both operations are **round‑trip safe**: `parse(stringify(x))` returns a deep‑equal
- * structure to `x` (including `Date` objects, numbers with underscores, etc.).
+Both operations are **round‑trip safe**: `parse(stringify(x))` returns a deep‑equal
+structure to `x` (including `Date` objects, numbers with underscores, etc.).
 
- * > Comments are not stringifying yet, todo
+> Comments are not stringifying yet, todo
 
- * ### Quick Example
+### Quick Example
 
- * The format is intentionally **minimal** – there are no commas, brackets (except for
- * empty containers), or other punctuation that could clutter the visual structure.
+The format is intentionally **minimal** – there are no commas, brackets (except for
+empty containers), or other punctuation that could clutter the visual structure.
 
- * For a complete reference see `src/NaN0.js` and the test suite
- * `src/NaN0.test.js`.
- */
+For a complete reference see `src/NaN0.js` and the test suite
+`src/NaN0.test.js`.
+
 How to work with NaN0 format?
 ```js
 import NaN0 from '@nan0web/types'
-const example = `# Sample NaN0\n` +
+const example =
+	`# Sample NaN0\n` +
 	`person:\n` +
 	`  name: Bob\n` +
 	`  age: 42\n` +

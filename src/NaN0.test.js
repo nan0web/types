@@ -2,10 +2,10 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import { NoConsole } from '@nan0web/log'
 import NaN0 from './NaN0.js'
-import { exampleOfComments, exampleOfExpected, exampleOfFormat } from "./NaN0.examples.js"
+import { exampleOfComments, exampleOfExpected, exampleOfFormat } from './NaN0.examples.js'
 
 describe('NaN0 parse and stringify', () => {
-	describe("parse", () => {
+	describe('parse', () => {
 		it('Should parse empty input as empty object', () => {
 			const result = NaN0.parse('')
 			assert.deepStrictEqual(result, {})
@@ -16,7 +16,7 @@ describe('NaN0 parse and stringify', () => {
 			const context = { comments: [] }
 			const result = NaN0.parse(input, context)
 			assert.deepStrictEqual(result, {})
-			assert.deepStrictEqual(context.comments, [{ text: "First comment\nSecond comment", id: "." }])
+			assert.deepStrictEqual(context.comments, [{ text: 'First comment\nSecond comment', id: '.' }])
 		})
 
 		it('Should parse top-level empty object', () => {
@@ -30,7 +30,7 @@ describe('NaN0 parse and stringify', () => {
 			const context = { comments: [] }
 			const result = NaN0.parse(input, context)
 			assert.deepStrictEqual(result, {})
-			assert.deepStrictEqual(context.comments, [{ text: "Comment", id: "." }])
+			assert.deepStrictEqual(context.comments, [{ text: 'Comment', id: '.' }])
 		})
 
 		it('Should parse top-level empty array', () => {
@@ -44,7 +44,7 @@ describe('NaN0 parse and stringify', () => {
 			const context = { comments: [] }
 			const result = NaN0.parse(input, context)
 			assert.deepStrictEqual(result, [])
-			assert.deepStrictEqual(context.comments, [{ text: "Comment", id: "[0]" }])
+			assert.deepStrictEqual(context.comments, [{ text: 'Comment', id: '[0]' }])
 		})
 
 		it('Should parse top-level object with multiple keys', () => {
@@ -59,8 +59,8 @@ describe('NaN0 parse and stringify', () => {
 			const result = NaN0.parse(input, context)
 			assert.deepStrictEqual(result, { name: 'John', age: 30 })
 			assert.deepStrictEqual(context.comments, [
-				{ text: "Top comment", id: "name" },
-				{ text: "Inline ignored for now", id: "age" }
+				{ text: 'Top comment', id: 'name' },
+				{ text: 'Inline ignored for now', id: 'age' },
 			])
 		})
 
@@ -89,9 +89,9 @@ describe('NaN0 parse and stringify', () => {
 				test: {
 					user: {
 						name: 'John',
-						details: { age: 30 }
-					}
-				}
+						details: { age: 30 },
+					},
+				},
 			})
 		})
 
@@ -100,8 +100,8 @@ describe('NaN0 parse and stringify', () => {
 			const result = NaN0.parse(input)
 			assert.deepStrictEqual(result, {
 				test: {
-					items: ['one', 42, true]
-				}
+					items: ['one', 42, true],
+				},
 			})
 		})
 
@@ -116,7 +116,7 @@ describe('NaN0 parse and stringify', () => {
 			const context = { comments: [] }
 			const result = NaN0.parse(input, context)
 			assert.deepStrictEqual(result, ['one', 42])
-			assert.deepStrictEqual(context.comments, [{ text: "Array comment", id: "[0]" }])
+			assert.deepStrictEqual(context.comments, [{ text: 'Array comment', id: '[0]' }])
 		})
 
 		it('should parse array with wrapped object', () => {
@@ -124,8 +124,8 @@ describe('NaN0 parse and stringify', () => {
 			const result = NaN0.parse(input)
 			assert.deepStrictEqual(result, {
 				test: {
-					items: [{ obj: { name: 'Val' } }, 100]
-				}
+					items: [{ obj: { name: 'Val' } }, 100],
+				},
 			})
 		})
 
@@ -134,8 +134,8 @@ describe('NaN0 parse and stringify', () => {
 			const result = NaN0.parse(input)
 			assert.deepStrictEqual(result, {
 				test: {
-					desc: 'line one\nline two'
-				}
+					desc: 'line one\nline two',
+				},
 			})
 		})
 
@@ -144,8 +144,8 @@ describe('NaN0 parse and stringify', () => {
 			const result = NaN0.parse(input)
 			assert.deepStrictEqual(result, {
 				test: {
-					lines: ['first\nsecond']
-				}
+					lines: ['first\nsecond'],
+				},
 			})
 		})
 
@@ -155,8 +155,8 @@ describe('NaN0 parse and stringify', () => {
 			assert.deepStrictEqual(result, {
 				test: {
 					num: 160000500.345,
-					neg: -42
-				}
+					neg: -42,
+				},
 			})
 		})
 
@@ -172,12 +172,12 @@ describe('NaN0 parse and stringify', () => {
 			const result = NaN0.parse(input)
 			assert.deepStrictEqual(result, {
 				test: {
-					quoted: 'escaped " quote'
-				}
+					quoted: 'escaped " quote',
+				},
 			})
 		})
 
-		it.skip("should parse all elements", () => {
+		it.skip('should parse all elements', () => {
 			const context = { comments: [] }
 			const result = NaN0.parse(exampleOfFormat, context)
 			assert.deepStrictEqual(result, exampleOfExpected)
@@ -194,14 +194,14 @@ describe('NaN0 parse and stringify', () => {
 			assert.throws(() => NaN0.parse(input), /Invalid array item/)
 		})
 
-		it("should parse object inside array itens", () => {
+		it('should parse object inside array itens', () => {
 			const input = `- Item 1\n- Item 2\n- nested:\n  object: 1`
 			const result = NaN0.parse(input)
-			assert.deepStrictEqual(result, ["Item 1", "Item 2", { nested: { "object": 1 } }])
+			assert.deepStrictEqual(result, ['Item 1', 'Item 2', { nested: { object: 1 } }])
 		})
 	})
 
-	describe("stringify", () => {
+	describe('stringify', () => {
 		it('Should stringify empty object', () => {
 			const input = {}
 			const output = NaN0.stringify(input)
@@ -211,7 +211,7 @@ describe('NaN0 parse and stringify', () => {
 
 		it('Should stringify empty object with comments', () => {
 			const input = {}
-			const output = NaN0.stringify(input, { comments: [{ text: "Comment", id: "." }] })
+			const output = NaN0.stringify(input, { comments: [{ text: 'Comment', id: '.' }] })
 			const expected = `# Comment\n{}`
 			assert.strictEqual(output, expected)
 		})
@@ -225,7 +225,7 @@ describe('NaN0 parse and stringify', () => {
 
 		it('Should stringify empty array with comments', () => {
 			const input = []
-			const output = NaN0.stringify(input, { comments: [{ text: "Comment", id: "[0]" }] })
+			const output = NaN0.stringify(input, { comments: [{ text: 'Comment', id: '[0]' }] })
 			const expected = `# Comment\n[]`
 			assert.strictEqual(output, expected)
 		})
@@ -239,7 +239,7 @@ describe('NaN0 parse and stringify', () => {
 
 		it('Should stringify top-level object with comments', () => {
 			const input = { name: 'John', age: 30 }
-			const output = NaN0.stringify(input, { comments: [{ text: "Top comment", id: "." }] })
+			const output = NaN0.stringify(input, { comments: [{ text: 'Top comment', id: '.' }] })
 			const expected = `# Top comment\nname: John\nage: 30`
 			assert.strictEqual(output, expected)
 		})
@@ -253,7 +253,7 @@ describe('NaN0 parse and stringify', () => {
 
 		it('Should stringify top-level array with comments', () => {
 			const input = ['one', 42]
-			const context = { comments: [{ text: "Array comment\nNext line", id: "[0]" }] }
+			const context = { comments: [{ text: 'Array comment\nNext line', id: '[0]' }] }
 			const output = NaN0.stringify(input, context)
 			const expected = `# Array comment\n# Next line\n- one\n- 42`
 			assert.strictEqual(output, expected)
@@ -283,8 +283,8 @@ describe('NaN0 parse and stringify', () => {
 		it('Should stringify array of primitives', () => {
 			const input = {
 				list: {
-					items: ['one', 42, true]
-				}
+					items: ['one', 42, true],
+				},
 			}
 			const output = NaN0.stringify(input)
 			const expected = `list:\n  items:\n    - one\n    - 42\n    - true`
@@ -294,11 +294,8 @@ describe('NaN0 parse and stringify', () => {
 		it('Should stringify array with wrapped object', () => {
 			const input = {
 				list: {
-					items: [
-						{ obj: { name: 'Val' } },
-						100
-					]
-				}
+					items: [{ obj: { name: 'Val' } }, 100],
+				},
 			}
 			const output = NaN0.stringify(input)
 			const expected = `list:\n  items:\n    - obj:\n      name: Val\n    - 100`
@@ -308,8 +305,8 @@ describe('NaN0 parse and stringify', () => {
 		it('Should stringify multiline string in object', () => {
 			const input = {
 				data: {
-					desc: 'line one\nline two'
-				}
+					desc: 'line one\nline two',
+				},
 			}
 			const output = NaN0.stringify(input)
 			const expected = `data:\n  desc: |\n    line one\n    line two`
@@ -319,8 +316,8 @@ describe('NaN0 parse and stringify', () => {
 		it('Should stringify multiline string in array', () => {
 			const input = {
 				data: {
-					lines: ['first\nsecond']
-				}
+					lines: ['first\nsecond'],
+				},
 			}
 			const output = NaN0.stringify(input)
 			const expected = `data:\n  lines:\n    - |\n      first\n      second`
@@ -331,8 +328,8 @@ describe('NaN0 parse and stringify', () => {
 			const input = {
 				data: {
 					num: 160000500.345,
-					neg: -42
-				}
+					neg: -42,
+				},
 			}
 			const output = NaN0.stringify(input)
 			const expected = `data:\n  num: 160_000_500.345\n  neg: -42`
@@ -345,8 +342,8 @@ describe('NaN0 parse and stringify', () => {
 			const input = {
 				data: {
 					date,
-					time
-				}
+					time,
+				},
 			}
 			const output = NaN0.stringify(input)
 			const expected = `data:\n  date: 2024-11-13\n  time: 2024-11-13T19:34:00`
@@ -356,8 +353,8 @@ describe('NaN0 parse and stringify', () => {
 		it('Should stringify quoted strings', () => {
 			const input = {
 				data: {
-					quoted: 'escaped " quote'
-				}
+					quoted: 'escaped " quote',
+				},
 			}
 			const output = NaN0.stringify(input)
 			const expected = `data:\n  quoted: "escaped \\" quote"`
@@ -385,29 +382,29 @@ describe('NaN0 parse and stringify', () => {
 			assert.throws(() => NaN0.stringify(42), /requires a non-null object or array/)
 		})
 
-		it.todo("should parse number as string if it starts with 0", () => {
+		it.todo('should parse number as string if it starts with 0', () => {
 			// @todo fix the issue with a leading zero, that is transformed to 123
-			const pojo = NaN0.parse("value: 0123")
-			assert.deepStrictEqual(pojo, { value: "0123" })
+			const pojo = NaN0.parse('value: 0123')
+			assert.deepStrictEqual(pojo, { value: '0123' })
 		})
 
-		it.todo("should parse number as string if it defined by Body type", () => {
+		it.todo('should parse number as string if it defined by Body type', () => {
 			// @todo fix the issue with a type that is defined in Body
 			class Body {
 				static value = {
-					type: String
+					type: String,
 				}
 				/** @type {string} */
 				value
 				constructor(input = {}) {
-					this.value = String(input.value ?? "")
+					this.value = String(input.value ?? '')
 				}
 			}
-			const pojo = NaN0.parse("value: 0123", { Body })
-			assert.deepStrictEqual(pojo, new Body({ value: "0123" }))
+			const pojo = NaN0.parse('value: 0123', { Body })
+			assert.deepStrictEqual(pojo, new Body({ value: '0123' }))
 		})
 	})
-	describe("README.md.js fails", () => {
+	describe('README.md.js fails', () => {
 		const console = new NoConsole()
 		/**
 		 * @docs
@@ -416,26 +413,28 @@ describe('NaN0 parse and stringify', () => {
 		 * - Inline comment: placed **before** a node.
 		 * - Multiline comment: a `#` line followed by indented lines (treated as part of the comment).
 		 */
-		it.todo("How to parse retrieve comments from the source", () => {
-			const str =
-				`# This is a top‑level comment` +
-				`name: Example` +
-				`# Multiline comment attached to the next key` +
-				`  More details about the value.` +
-				`description: |` +
-				`  First line` +
-				`  Second line`
+		it.todo('How to parse retrieve comments from the source', () => {
+			const str = [
+				`# This is a top‑level comment`,
+				`name: Example`,
+				`# Multiline comment attached to the next key`,
+				`  More details about the value.`,
+				`description: |`,
+				`  First line`,
+				`  Second line`,
+			].join('\n')
 			const ctx = { comments: [] }
 			const parsed = NaN0.parse(str, ctx)
-			console.info(ctx.comments)
-			console.info(parsed)
-			assert.deepStrictEqual(console.output()[0][1], [
-				{ id: "name", text: "This is a top‑level comment" },
-				{ id: "description", text: "Multiline comment attached to the next key\nMore details about the value." }
+			assert.deepStrictEqual(ctx.comments, [
+				{ id: 'name', text: 'This is a top‑level comment' },
+				{
+					id: 'description',
+					text: 'Multiline comment attached to the next key\nMore details about the value.',
+				},
 			])
-			assert.deepStrictEqual(console.output()[1][1], {
-				name: "Example",
-				description: "First line\nSecond line"
+			assert.deepStrictEqual(parsed, {
+				name: 'Example',
+				description: 'First line\nSecond line',
 			})
 		})
 	})

@@ -6,13 +6,13 @@ import clone from './clone.js'
  * Helper class with explicit .clone() method.
  */
 class WithClone {
-	constructor (value) {
+	constructor(value) {
 		this.value = value
 	}
-	clone () {
+	clone() {
 		const c = new WithClone(this.value)
 		// ensure any future properties are also cloned via generic mechanism
-		Object.keys(this).forEach(k => {
+		Object.keys(this).forEach((k) => {
 			if (k !== 'value') c[k] = clone(this[k])
 		})
 		return c
@@ -23,7 +23,7 @@ class WithClone {
  * Helper class without .clone() – relies on constructor cloning.
  */
 class WithoutClone {
-	constructor (data) {
+	constructor(data) {
 		this.data = data
 	}
 }

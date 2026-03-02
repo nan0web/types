@@ -1,4 +1,4 @@
-import Node from "./Node.js"
+import Node from './Node.js'
 
 /**
  * Base class that knows how to:
@@ -11,9 +11,9 @@ import Node from "./Node.js"
  */
 export default class Parser {
 	/** default line‑break & tab characters – override in ctor if you need something else */
-	static EOL = "\n"
-	static TAB = "  "
-	static SKIP = [""]
+	static EOL = '\n'
+	static TAB = '\t'
+	static SKIP = ['']
 
 	/** @type {string} */
 	eol
@@ -29,11 +29,7 @@ export default class Parser {
 	 * @param {Array<string | Function>} [input.skip=[""]]
 	 */
 	constructor(input = {}) {
-		const {
-			eol = Parser.EOL,
-			tab = Parser.TAB,
-			skip = Parser.SKIP,
-		} = input
+		const { eol = Parser.EOL, tab = Parser.TAB, skip = Parser.SKIP } = input
 		this.eol = String(eol)
 		this.tab = String(tab)
 		this.skip = Array.isArray(skip) ? skip : [skip]
@@ -71,11 +67,11 @@ export default class Parser {
 			const raw = rows[i]
 
 			// 1️⃣ always ignore completely empty lines – they carry no semantic value
-			if (raw.trim() === "") {
+			if (raw.trim() === '') {
 				continue
 			}
 			// 2️⃣ skip lines matching any of the supplied skip patterns / functions
-			if (this.skip.some((s => "function" === typeof s ? s(raw) : s === raw))) {
+			if (this.skip.some((s) => ('function' === typeof s ? s(raw) : s === raw))) {
 				continue
 			}
 
@@ -87,12 +83,18 @@ export default class Parser {
 				stack.pop()
 			}
 			if (0 === stack.length) {
-				throw new Error([
-					["Parsing error at row #", (i + 1)],
-					...rows.slice(Math.max(0, i - 3), Math.max(0, i)).map((s, j) => [`#${i - 3 + j} > ${s}`]),
-					[`#${i + 1} > ${rows[i]}`],
-					...rows.slice(Math.min(0, i), Math.min(0, i + 3)).map((s, j) => [`#${i + j} > ${s}`]),
-				].map(s => s.join("")).join("\n"))
+				throw new Error(
+					[
+						['Parsing error at row #', i + 1],
+						...rows
+							.slice(Math.max(0, i - 3), Math.max(0, i))
+							.map((s, j) => [`#${i - 3 + j} > ${s}`]),
+						[`#${i + 1} > ${rows[i]}`],
+						...rows.slice(Math.min(0, i), Math.min(0, i + 3)).map((s, j) => [`#${i + j} > ${s}`]),
+					]
+						.map((s) => s.join(''))
+						.join('\n'),
+				)
 			}
 			const parent = stack[stack.length - 1].node
 
@@ -121,9 +123,9 @@ export default class Parser {
 			return line
 		}
 		const childLines = node.children
-			.map(child => this.encode(child, { indent: indent + 1 }))
+			.map((child) => this.encode(child, { indent: indent + 1 }))
 			.join(this.eol)
-			return `${line}${this.eol}${childLines}`
+		return `${line}${this.eol}${childLines}`
 	}
 
 	/**
@@ -134,12 +136,10 @@ export default class Parser {
 		return node.toString({ tab: this.tab, eol: this.eol })
 	}
 
-	static findTab(str, tabs = [4, 2, "\t"], eol = "\n") {
+	static findTab(str, tabs = [4, 2, '\t'], eol = '\n') {
 		const arr = str.split(eol)
-		const map = new Map(
-			tabs.map(t => (["number" === typeof t ? " ".repeat(t) : t, 0]))
-		)
-		arr.forEach(row => {
+		const map = new Map(tabs.map((t) => ['number' === typeof t ? ' '.repeat(t) : t, 0]))
+		arr.forEach((row) => {
 			for (const key of map.keys()) {
 				if (row.startsWith(key)) {
 					map.set(key, (map.get(key) ?? 0) + 1)
@@ -148,6 +148,6 @@ export default class Parser {
 		})
 		const entries = Array.from(map.entries())
 		entries.sort((a, b) => b[1] - a[1])
-		return entries[0]?.[0] ?? "\t"
+		return entries[0]?.[0] ?? '\t'
 	}
 }

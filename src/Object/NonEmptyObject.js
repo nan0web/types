@@ -1,4 +1,4 @@
-import { notEmpty } from "../core.js"
+import { notEmpty } from '../core.js'
 
 /**
  * Base class providing a `toObject` method that omits empty values.
@@ -38,9 +38,7 @@ function toPlain(value, visited = new WeakSet()) {
 	visited.add(value)
 
 	if (Array.isArray(value)) {
-		return value
-			.map(item => toPlain(item, visited))
-			.filter(notEmpty)
+		return value.map((item) => toPlain(item, visited)).filter(notEmpty)
 	}
 
 	if (value.toObject && typeof value.toObject === 'function') {

@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { notEmpty, empty } from "../index.js"
+import { notEmpty, empty } from '../index.js'
 import NonEmptyObject from './NonEmptyObject.js'
 
 describe('NonEmptyObject', () => {
@@ -46,7 +46,7 @@ describe('NonEmptyObject', () => {
 				str: 'hello',
 				num: 42,
 				boolTrue: true,
-				arr: [1, 2]
+				arr: [1, 2],
 			})
 		})
 
@@ -62,7 +62,7 @@ describe('NonEmptyObject', () => {
 			const obj = instance.toObject()
 			assert.deepStrictEqual(obj, {
 				baseProp: 'base',
-				derivedProp: 'derived'
+				derivedProp: 'derived',
 			})
 		})
 	})
@@ -85,7 +85,7 @@ describe('NonEmptyObject', () => {
 			const obj = instance.toObject()
 			assert.deepStrictEqual(obj, {
 				nestedFull: { value: 'nested' },
-				primitive: 'outer'
+				primitive: 'outer',
 			})
 		})
 
@@ -104,9 +104,9 @@ describe('NonEmptyObject', () => {
 
 		it('skips nested if toObject returns empty object', () => {
 			class TestSkipNested extends NonEmptyObject {
-				nested = new class Nested extends NonEmptyObject {
+				nested = new (class Nested extends NonEmptyObject {
 					emptyStr = ''
-				}()
+				})()
 			}
 			const instance = new TestSkipNested()
 			const obj = instance.toObject()
@@ -133,17 +133,12 @@ describe('NonEmptyObject', () => {
 				empty = ''
 			}
 			class TestArray extends NonEmptyObject {
-				items = [
-					new Item(),
-					new EmptyItem()
-				]
+				items = [new Item(), new EmptyItem()]
 			}
 			const instance = new TestArray()
 			const obj = instance.toObject()
 			assert.deepStrictEqual(obj, {
-				items: [
-					{ val: 'item1' }
-				]
+				items: [{ val: 'item1' }],
 			})
 		})
 	})

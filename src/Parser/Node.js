@@ -1,34 +1,26 @@
-import ContainerObject from "../Object/ContainerObject.js"
-
-/**
- * @typedef {Object} NodeInput
- * @property {string} [content=""]
- * @property {Array<Partial<Node>>} [children=[]]
- * @property {number} [indent=0]
- */
+import ContainerObject from '../Object/ContainerObject.js'
 
 /**
  * ──  Generic tree node that every format will start from
  * ──  { content:string, children:Array<Node> }
  */
 export default class Node extends ContainerObject {
-	/** @type {string} */
+	/** @type {string} The row content (node is a row) */
 	content = ''
-	/** @type {Node[]} */
+	/** @type {Node[]} Nested rows (with higher indents until next with the same or lower) */
 	children = []
-	/** @type {number} */
+	/** @type {number} The indent value */
 	indent = 0
 
 	/**
-	 *
-	 * @param {NodeInput} input
+	 * @param {Partial<Node>} [input={}]
 	 */
 	constructor(input = {}) {
-		const { content = "", children = [], indent = 0 } = input
+		const { content = '', children = [], indent = 0 } = input
 		super({ level: indent })
 		this.content = String(content)
 		this.indent = Number(indent)
-		children.forEach(c => this.add(c))
+		children.forEach((c) => this.add(c))
 	}
 
 	/**
@@ -78,12 +70,11 @@ export default class Node extends ContainerObject {
 	 * @param {string} [input.eol="\n"]
 	 * @returns
 	 */
-	toString({ trim = false, tab = "\t", eol = "\n" } = {}) {
-		const prefix = trim ? "" : tab.repeat(this.indent)
-		return [
-			prefix + this.content,
-			...this.children.map(c => c.toString({ trim, tab, eol }))
-		].filter(Boolean).join(eol)
+	toString({ trim = false, tab = '\t', eol = '\n' } = {}) {
+		const prefix = trim ? '' : tab.repeat(this.indent)
+		return [prefix + this.content, ...this.children.map((c) => c.toString({ trim, tab, eol }))]
+			.filter(Boolean)
+			.join(eol)
 	}
 
 	/**

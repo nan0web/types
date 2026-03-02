@@ -1,4 +1,4 @@
-export default clone;
+export default clone
 /**
  * Creates a deep clone of an object, array, or complex structure,
  * handling circular references and custom classes.
@@ -8,4 +8,4 @@ export default clone;
  *        to handle circular references.
  * @returns {any} - The deep clone of the input object or structure.
  */
-declare function clone(obj: any, seen?: WeakMap<any, any> | undefined): any;
+declare function clone(obj: any, seen?: WeakMap<any, any> | undefined): any

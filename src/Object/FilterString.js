@@ -12,7 +12,7 @@ class FilterString extends String {
 	 * @returns {boolean} True if any argument is included in the string
 	 */
 	inIncludes(...args) {
-		return args.some(a => this.includes(String(a)))
+		return args.some((a) => this.includes(String(a)))
 	}
 
 	/**
@@ -21,7 +21,7 @@ class FilterString extends String {
 	 * @returns {boolean} True if any argument matches the start of the string
 	 */
 	inStarts(...args) {
-		return args.some(a => this.startsWith(String(a)))
+		return args.some((a) => this.startsWith(String(a)))
 	}
 
 	/**
@@ -30,7 +30,7 @@ class FilterString extends String {
 	 * @returns {boolean} True if any argument matches the end of the string
 	 */
 	inEnds(...args) {
-		return args.some(a => this.endsWith(String(a)))
+		return args.some((a) => this.endsWith(String(a)))
 	}
 
 	/**
@@ -38,8 +38,8 @@ class FilterString extends String {
 	 * @param {string} [chars="\n\t "] - Characters to trim from the end
 	 * @returns {string} String with specified characters trimmed from the end
 	 */
-	trimEnd(chars = "\n\t ") {
-		if (chars === "") return String(this)
+	trimEnd(chars = '\n\t ') {
+		if (chars === '') return String(this)
 		let str = String(this)
 		const charSet = new Set(chars)
 		while (str.length > 0 && charSet.has(str[str.length - 1])) {
@@ -53,8 +53,8 @@ class FilterString extends String {
 	 * @param {string} [chars="\n\t "] - Characters to trim from the start
 	 * @returns {string} String with specified characters trimmed from the start
 	 */
-	trimStart(chars = "\n\t ") {
-		if (chars === "") return String(this)
+	trimStart(chars = '\n\t ') {
+		if (chars === '') return String(this)
 
 		let str = String(this)
 		const charSet = new Set(chars)
@@ -71,10 +71,8 @@ class FilterString extends String {
 	 * @param {string} [chars="\n\t "] - Characters to trim from both ends
 	 * @returns {string} Trimmed string
 	 */
-	trim(chars = "\n\t ") {
-		return String(new FilterString(
-			new FilterString(this).trimStart(chars)
-		).trimEnd(chars))
+	trim(chars = '\n\t ') {
+		return String(new FilterString(new FilterString(this).trimStart(chars)).trimEnd(chars))
 	}
 }
 

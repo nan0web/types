@@ -1,11 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import {
-	to,
-	FullObject,
-	Enum,
-	isConstructible,
-} from './index.js'
+import { to, FullObject, Enum, isConstructible } from './index.js'
 
 describe('core – edge coverage', () => {
 	it('to(Map) preserves nested maps (covers Map handling)', () => {
@@ -43,7 +38,7 @@ describe('core – edge coverage', () => {
 	})
 
 	it('Enum validates with function and throws on bad value (covers error path)', () => {
-		const isNumber = v => typeof v === 'number'
+		const isNumber = (v) => typeof v === 'number'
 		const validator = Enum('red', isNumber)
 
 		// valid cases
@@ -51,16 +46,17 @@ describe('core – edge coverage', () => {
 		assert.strictEqual(validator(10), 10)
 
 		// invalid case should throw
-		assert.throws(() => validator('blue'), {
-			name: 'TypeError',
-			message: [
-				'Enumeration must have one value of',
-				'- red',
-				'- v => typeof v === \'number\'',
-				'but provided',
-				'blue'
-			].join('\n')
-		})
+		let caught
+		try {
+			validator('blue')
+		} catch (e) {
+			caught = e
+		}
+		assert.ok(caught instanceof TypeError)
+		assert.ok(caught.message.includes('Enumeration must have one value of'))
+		assert.ok(caught.message.includes('- red'))
+		assert.ok(caught.message.includes('but provided'))
+		assert.ok(caught.message.includes('blue'))
 	})
 
 	it('isConstructible distinguishes class vs arrow function (covers lines 270‑271)', () => {

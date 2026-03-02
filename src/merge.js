@@ -11,8 +11,8 @@
  * const result = merge({ arr: [1, 2] }, [{ $clear: true }, 3, 4])
  * // result => { arr: [3, 4] }
  */
-export default function merge (target, source, options = { unique: true }) {
-	const isObject = v => v !== null && typeof v === 'object' && !Array.isArray(v)
+export default function merge(target, source, options = { unique: true }) {
+	const isObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v)
 
 	if (!isObject(target)) {
 		return isObject(source) ? source : source
@@ -59,9 +59,7 @@ export default function merge (target, source, options = { unique: true }) {
 				continue
 			}
 			if (Array.isArray(tgtVal)) {
-				result[key] = options.unique
-					? uniqArray(tgtVal.concat(srcVal))
-					: tgtVal.concat(srcVal)
+				result[key] = options.unique ? uniqArray(tgtVal.concat(srcVal)) : tgtVal.concat(srcVal)
 				continue
 			}
 			result[key] = srcVal.slice()
@@ -86,9 +84,9 @@ export default function merge (target, source, options = { unique: true }) {
  * @param {Array} arr
  * @returns {Array}
  */
-export function uniqArray (arr) {
+export function uniqArray(arr) {
 	const seen = new Set()
-	return arr.filter(item => {
+	return arr.filter((item) => {
 		const key = typeof item === 'object' ? JSON.stringify(item) : String(item)
 		if (seen.has(key)) return false
 		seen.add(key)

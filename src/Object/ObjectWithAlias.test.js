@@ -64,7 +64,10 @@ describe('ObjectWithAlias', () => {
 		it('handles empty ALIAS map', () => {
 			class NoAlias extends ObjectWithAlias {
 				static ALIAS = {}
-				constructor(input) { super(input); this.prop = input.prop || ''; }
+				constructor(input) {
+					super(input)
+					this.prop = input.prop || ''
+				}
 			}
 			const instance = NoAlias.from({ prop: 'value', extra: 'ignored' })
 			assert.strictEqual(instance.prop, 'value')
@@ -75,22 +78,25 @@ describe('ObjectWithAlias', () => {
 				static ALIAS = {
 					shortName: 'name',
 					shortAge: 'age',
-					shortEmail: 'email'
+					shortEmail: 'email',
 				}
 			}
 			const props = { shortName: 'Ali', shortAge: 30, other: 'keep' }
 			const instance = MultiAlias.from(props)
-			assert.deepStrictEqual({
-				name: 'Ali',
-				age: 30,
-				email: undefined,
-				other: 'keep'
-			}, {
-				name: instance.name,
-				age: instance.age,
-				email: instance.email,
-				other: instance.other
-			})
+			assert.deepStrictEqual(
+				{
+					name: 'Ali',
+					age: 30,
+					email: undefined,
+					other: 'keep',
+				},
+				{
+					name: instance.name,
+					age: instance.age,
+					email: instance.email,
+					other: instance.other,
+				},
+			)
 		})
 
 		it('from works with non-object input', () => {

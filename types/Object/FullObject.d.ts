@@ -3,5 +3,4 @@
  *
  * @class FullObject
  */
-export default class FullObject {
-}
+export default class FullObject {}
