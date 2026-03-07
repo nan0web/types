@@ -10,6 +10,8 @@ import NaN0 from './NaN0.js'
 import Parser, { Node } from './Parser/index.js'
 import resolveAliases from './resolveAliases.js'
 import resolveDefaults from './resolveDefaults.js'
+import validateAll from './validateAll.js'
+import ModelError from './ModelError.js'
 
 export * from './core.js'
 
@@ -27,6 +29,8 @@ export {
 	NaN0,
 	resolveAliases,
 	resolveDefaults,
+	validateAll,
+	ModelError,
 }
 
 export default NaN0

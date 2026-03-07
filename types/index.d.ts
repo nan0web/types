@@ -13,4 +13,6 @@ import { Node } from './Parser/index.js';
 import NaN0 from './NaN0.js';
 import resolveAliases from './resolveAliases.js';
 import resolveDefaults from './resolveDefaults.js';
-export { FilterString, FullObject, UndefinedObject, ObjectWithAlias, ContainerObject, NonEmptyObject, clone, merge, Parser, Node, NaN0, resolveAliases, resolveDefaults };
+import validateAll from './validateAll.js';
+import ModelError from './ModelError.js';
+export { FilterString, FullObject, UndefinedObject, ObjectWithAlias, ContainerObject, NonEmptyObject, clone, merge, Parser, Node, NaN0, resolveAliases, resolveDefaults, validateAll, ModelError };
