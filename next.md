@@ -1,6 +1,6 @@
 # @nan0web/types — Next Steps
 
-## v1.5.0 — Total Logic Isolation & i18n Contract ✅ (Current)
+## v1.4.0 — Total Logic Isolation & i18n Contract ✅ (Current)
 
 - [x] **TFunction**: Централізовано контракт перекладу в `@nan0web/types`.
 - [x] **Recursive Plurals**: Підтримка вкладених об'єктів перекладу.
