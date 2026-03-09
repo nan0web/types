@@ -13,12 +13,12 @@
  *   class MyConfig extends Config {
  *     constructor(input) {
  *       Object.assign(this, input)
- *       validateAll(MyConfig, this)
+ *       resolveValidation(MyConfig, this)
  *     }
  *   }
  */
 
-import ModelError from './ModelError.js'
+import ModelError from '../domain/ModelError.js'
 
 /**
  * Validate values of a target object against static metadata rules.
@@ -28,16 +28,18 @@ import ModelError from './ModelError.js'
  * @returns {boolean} - Returns true if validation passes.
  * @throws {ModelError} - Throws a ModelError with all validation failures.
  */
-export default function validateAll(Class, target) {
+export default function resolveValidation(Class, target) {
+	/** @type {Record<string, any>} */
 	const fields = {}
 
 	for (const [key, meta] of Object.entries(Class)) {
 		if (meta && typeof meta === 'object' && typeof meta.validate === 'function') {
 			const result = meta.validate(target[key])
+			if (true === result) continue
 
-			if (result === false) {
-				fields[key] = `Validation failed for property '${key}'`
-			} else if (typeof result === 'string' && result.length > 0) {
+			if (false === result) {
+				fields[key] = ["Validation failed for property '{key}'", { key }]
+			} else {
 				fields[key] = result
 			}
 		}

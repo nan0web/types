@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { to, FullObject, Enum, isConstructible } from './index.js'
+import { to, FullObject, Enum, isConstructible } from '../index.js'
 
 describe('core – edge coverage', () => {
 	it('to(Map) preserves nested maps (covers Map handling)', () => {

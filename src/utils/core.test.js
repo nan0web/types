@@ -18,7 +18,7 @@ import {
 	merge,
 	clone,
 	isConstructible,
-} from './index.js'
+} from '../index.js'
 
 describe('nano-types utilities', () => {
 	describe('oneOf', () => {

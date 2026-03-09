@@ -27,6 +27,9 @@ import {
 	ContainerObject,
 	resolveAliases,
 	resolveDefaults,
+	resolveValidation,
+	ModelError,
+	createT,
 } from './index.js'
 
 const fs = new DB()
@@ -55,6 +58,8 @@ function testRender() {
 	/**
 	 * @docs
 	 * # @nan0web/types
+	 *
+	 * [English](README.md) | [Українська](docs/uk/README.md)
 	 *
 	 * <!-- %PACKAGE_STATUS% -->
 	 *
@@ -283,6 +288,52 @@ function testRender() {
 
 	/**
 	 * @docs
+	 * ### `resolveValidation(Class, target)`
+	 *
+	 * Performs batch validation of an object against static metadata rules defined
+	 * in a class. If any validation fails, it throws a `ModelError`.
+	 */
+	it('How to validate model via resolveValidation?', () => {
+		//import { resolveValidation, ModelError } from "@nan0web/types"
+		class User {
+			static name = {
+				validate: (v) => v.length > 2 || 'Name too short',
+			}
+			static age = {
+				validate: (v) => v >= 18 || 'Must be an adult',
+			}
+		}
+
+		try {
+			resolveValidation(User, { name: 'Bo', age: 17 })
+		} catch (e) {
+			if (e instanceof ModelError) {
+				console.info(e.fields) // ← { name: "Name too short", age: "Must be an adult" }
+			}
+		}
+		assert.throws(() => resolveValidation(User, { name: 'Bo', age: 17 }), ModelError)
+	})
+
+	/**
+	 * @docs
+	 * ### `ModelError`
+	 *
+	 * A structured error class for validation failures. It holds a map of fields
+	 * that failed validation and their respective error messages.
+	 */
+	it('How to use ModelError for structured errors?', () => {
+		//import { ModelError } from "@nan0web/types"
+		const error = new ModelError({
+			email: 'Invalid format',
+			password: ['Too short {min}', { min: 8 }],
+		})
+
+		console.info(error.fields.email) // ← "Invalid format"
+		assert.equal(error.fields.email, 'Invalid format')
+	})
+
+	/**
+	 * @docs
 	 * ### `empty(...values)`
 	 * Checks if any of provided values are considered empty.
 	 */
@@ -335,12 +386,12 @@ function testRender() {
 
 	/**
 	 * @docs
-	 * ### ContainerObject
+	 * ### `ContainerObject`
 	 *
-	 * Constructor and add() added for the proper typings of B class.
-	 * @todo add short desc
+	 * A base class for creating hierarchical tree structures. It provides
+	 * a level-tracking system and an `.add()` method for children.
 	 */
-	it('How to use NonEmptyObject to filter empty values?', () => {
+	it('How to build a custom tree with ContainerObject?', () => {
 		//import { ContainerObject } from "@nan0web/types"
 		/** @typedef {import("@nan0web/types/types/Object/ContainerObject").ContainerObjectArgs} ContainerObjectArgs */
 		class B extends ContainerObject {
@@ -530,6 +581,54 @@ function testRender() {
 		const result = merge(a, b)
 		console.info(result) // ← { x: 1, nested: { a: 1, b: 2 }, y: 2 }
 		assert.deepStrictEqual(console.output()[0][1], { x: 1, y: 2, nested: { a: 1, b: 2 } })
+	})
+
+	/**
+	 * @docs
+	 * ### `TFunction` (Contract)
+	 *
+	 * A function type definition for translations:
+	 * `(key: string, vars?: Record<string, any>) => string`
+	 *
+	 * ### `createT(vocabulary, locale)`
+	 *
+	 * A lightweight internationalization engine that supports variable substitution,
+	 * recursive pluralization, and numeric shorthands.
+	 */
+
+	/**
+	 * @docs
+	 * ### Symmetrical i18n Validation
+	 *
+	 * This package establishes a pattern for **Symmetrical i18n Validation**.
+	 * By using `createT` (the factory) and `TFunction` (the contract), you can
+	 * define validation rules in your domain models that return translatable
+	 * structures (e.g., `["Invalid DSN: {dsn}", { dsn: value }]`).
+	 *
+	 * These errors are caught as `ModelError` and translated at any UI layer
+	 * (CLI, Web, Mobile) using a local `TFunction` instance.
+	 */
+	it('How to use createT for translations?', () => {
+		//import { createT } from "@nan0web/types"
+		const t = createT(
+			{
+				'Hello {name}': 'Привіт, {name}!',
+				apples_one: '{count} яблуко',
+				apples_few: '{count} яблука',
+				apples_many: '{count} яблук',
+				'I have {apples}': 'У мене є {apples}',
+			},
+			'uk-UA',
+		)
+
+		// Basic substitution
+		console.info(t('Hello {name}', { name: 'Світ' })) // ← "Привіт, Світ!"
+
+		// Numeric shorthand for plurals (apples: 5 -> t('apples', { $count: 5, count: 5 }))
+		console.info(t('I have {apples}', { apples: 5 })) // ← "У мене є 5 яблук"
+
+		assert.equal(t('Hello {name}', { name: 'Світ' }), 'Привіт, Світ!')
+		assert.equal(t('I have {apples}', { apples: 5 }), 'У мене є 5 яблук')
 	})
 
 	/**

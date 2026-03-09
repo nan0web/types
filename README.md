@@ -1,5 +1,7 @@
 # @nan0web/types
 
+[English](README.md) | [Українська](docs/uk/README.md)
+
 <!-- %PACKAGE_STATUS% -->
 
 A minimal, zero-dependency toolkit for managing JavaScript data structures,
@@ -157,6 +159,44 @@ const settings = { port: 8080 }
 resolveDefaults(Config, settings)
 console.info(settings) // ← { port: 8080, theme: "dark" }
 ```
+### `resolveValidation(Class, target)`
+
+Performs batch validation of an object against static metadata rules defined
+in a class. If any validation fails, it throws a `ModelError`.
+
+How to validate model via resolveValidation?
+```js
+import { resolveValidation, ModelError } from "@nan0web/types"
+class User {
+	static name = {
+		validate: (v) => v.length > 2 || 'Name too short',
+	}
+	static age = {
+		validate: (v) => v >= 18 || 'Must be an adult',
+	}
+}
+try {
+	resolveValidation(User, { name: 'Bo', age: 17 })
+} catch (e) {
+	if (e instanceof ModelError) {
+		console.info(e.fields) // ← { name: "Name too short", age: "Must be an adult" }
+	}
+}
+```
+### `ModelError`
+
+A structured error class for validation failures. It holds a map of fields
+that failed validation and their respective error messages.
+
+How to use ModelError for structured errors?
+```js
+import { ModelError } from "@nan0web/types"
+const error = new ModelError({
+	email: 'Invalid format',
+	password: ['Too short {min}', { min: 8 }],
+})
+console.info(error.fields.email) // ← "Invalid format"
+```
 ### `empty(...values)`
 Checks if any of provided values are considered empty.
 
@@ -194,12 +234,12 @@ class A {
 const converted = to(Object)(new A())
 console.info(converted) // ← { x: 9 }
 ```
-### ContainerObject
+### `ContainerObject`
 
-Constructor and add() added for the proper typings of B class.
-@todo add short desc
+A base class for creating hierarchical tree structures. It provides
+a level-tracking system and an `.add()` method for children.
 
-How to use NonEmptyObject to filter empty values?
+How to build a custom tree with ContainerObject?
 ```js
 import { ContainerObject } from "@nan0web/types"
 /** @typedef {import("@nan0web/types/types/Object/ContainerObject").ContainerObjectArgs} ContainerObjectArgs */
@@ -339,6 +379,46 @@ const a = { x: 1, nested: { a: 1 } }
 const b = { y: 2, nested: { b: 2 } }
 const result = merge(a, b)
 console.info(result) // ← { x: 1, nested: { a: 1, b: 2 }, y: 2 }
+```
+### `TFunction` (Contract)
+
+A function type definition for translations:
+`(key: string, vars?: Record<string, any>) => string`
+
+### `createT(vocabulary, locale)`
+
+A lightweight internationalization engine that supports variable substitution,
+recursive pluralization, and numeric shorthands.
+
+/**
+@docs
+### Symmetrical i18n Validation
+
+This package establishes a pattern for **Symmetrical i18n Validation**.
+By using `createT` (the factory) and `TFunction` (the contract), you can
+define validation rules in your domain models that return translatable
+structures (e.g., `["Invalid DSN: {dsn}", { dsn: value }]`).
+
+These errors are caught as `ModelError` and translated at any UI layer
+(CLI, Web, Mobile) using a local `TFunction` instance.
+
+How to use createT for translations?
+```js
+import { createT } from "@nan0web/types"
+const t = createT(
+	{
+		'Hello {name}': 'Привіт, {name}!',
+		apples_one: '{count} яблуко',
+		apples_few: '{count} яблука',
+		apples_many: '{count} яблук',
+		'I have {apples}': 'У мене є {apples}',
+	},
+	'uk-UA',
+)
+// Basic substitution
+console.info(t('Hello {name}', { name: 'Світ' })) // ← "Привіт, Світ!"
+// Numeric shorthand for plurals (apples: 5 -> t('apples', { $count: 5, count: 5 }))
+console.info(t('I have {apples}', { apples: 5 })) // ← "У мене є 5 яблук"
 ```
 ### `isConstructible(fn)`
 Checks whether a function can be called with `new`.

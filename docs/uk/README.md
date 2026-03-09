@@ -1,5 +1,7 @@
 # @nan0web/types
 
+[English](../../README.md) | [Українська](README.md)
+
 <!-- %PACKAGE_STATUS% -->
 
 Мінімалістичний інструментарій без зовнішніх залежностей для роботи з JavaScript‑структурами даних, конверсіями та валідацією типів. Створений згідно з [філософією nan0web](https://github.com/nan0web/monorepo/blob/main/system.md#nanweb-nan0web), де нуль — це нескінченне джерело (Всесвіт), звідки виникають значущі структури.
@@ -228,12 +230,11 @@ const converted = to(Object)(new A())
 console.info(converted) // ← { x: 9 }
 ```
 
-### ContainerObject
+### `ContainerObject`
 
-Конструктор та `add()` додані для правильного типізування класу `B`.
-@todo додати короткий опис
+Базовий клас для створення ієрархічних деревоподібних структур. Він забезпечує систему відстеження рівня вкладеності (`level`) та метод `.add()` для додавання дочірніх елементів.
 
-Як використовувати NonEmptyObject для фільтрації порожніх значень?
+Як побудувати кастомне дерево через ContainerObject?
 
 ```js
 import { ContainerObject } from '@nan0web/types'
@@ -401,6 +402,72 @@ console.info(result) // ← { x: 1, nested: { a: 1, b: 2 }, y: 2 }
 import { isConstructible } from '@nan0web/types'
 console.info(isConstructible(class X {})) // ← true
 console.info(isConstructible(() => {})) // ← false
+```
+
+### `TFunction` (Контракт)
+
+Визначення типу функції для перекладів:
+`(key: string, vars?: Record<string, any>) => string`
+
+### `createT(vocabulary, locale)`
+
+Легкий рушій інтернаціоналізації (i18n), що підтримує підстановку змінних, рекурсивну множину та скорочений запис для чисел.
+
+Як використовувати createT для перекладів?
+
+```js
+import { createT } from '@nan0web/types'
+const t = createT(
+  {
+    'Hello {name}': 'Привіт, {name}!',
+    apples_one: '{count} яблуко',
+    apples_few: '{count} яблука',
+    apples_many: '{count} яблук',
+    'I have {apples}': 'У мене є {apples}',
+  },
+  'uk-UA',
+)
+// Базова підстановка
+console.info(t('Hello {name}', { name: 'Світ' })) // ← "Привіт, Світ!"
+// Скорочений запис для чисел (apples: 5 -> t('apples', { $count: 5, count: 5 }))
+console.info(t('I have {apples}', { apples: 5 })) // ← "У мене є 5 яблук"
+```
+
+### `resolveValidation(Class, target)`
+
+Виконує пакетну валідацію обʼєкта проти статичних метаданих класу. Якщо валідація не пройшла — кидає `ModelError`.
+
+```js
+import { resolveValidation, ModelError } from '@nan0web/types'
+class User {
+  static name = { validate: (v) => v.length > 2 || 'Name too short' }
+  static age = { validate: (v) => v >= 18 || 'Must be an adult' }
+}
+try {
+  resolveValidation(User, { name: 'Bo', age: 17 })
+} catch (e) {
+  if (e instanceof ModelError) {
+    console.info(e.fields) // ← { name: "Name too short", age: "Must be an adult" }
+  }
+}
+```
+
+### `ModelError`
+
+Структурований клас помилок для валідації. Містить map полів з повідомленнями про помилки та підтримує переклад через `.translate(t)`.
+
+```js
+import { ModelError, createT } from '@nan0web/types'
+const error = new ModelError({
+  email: 'Invalid format',
+  password: ['Too short {min}', { min: 8 }],
+})
+console.info(error.fields.email) // ← "Invalid format"
+
+// Переклад помилки
+const t = createT({ 'Invalid format': 'Невірний формат' })
+const translated = error.translate(t)
+console.info(translated.fields.email) // ← "Невірний формат"
 ```
 
 ## Парсер та деревовидні структури

@@ -1,6 +1,6 @@
-import FullObject from './Object/FullObject.js'
-import NonEmptyObject from './Object/NonEmptyObject.js'
-import UndefinedObject from './Object/UndefinedObject.js'
+import FullObject from '../domain/Object/FullObject.js'
+import NonEmptyObject from '../domain/Object/NonEmptyObject.js'
+import UndefinedObject from '../domain/Object/UndefinedObject.js'
 
 /**
  * Checks if a value is strictly one of the provided arguments.

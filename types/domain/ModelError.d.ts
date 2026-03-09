@@ -7,8 +7,8 @@ export default class ModelError extends Error {
     fields: Record<string, any>;
     /**
      * Translate the error fields using a translation function.
-     * @param {import('./utils/TFunction').TFunction} t - The translation function, e.g. t(key, params)
+     * @param {import('../utils/TFunction.js').TFunction} t - The translation function, e.g. t(key, params)
      * @returns {ModelError} - A new ModelError with translated fields.
      */
-    translate(t: import('./utils/TFunction').TFunction): ModelError;
+    translate(t: import("../utils/TFunction.js").TFunction): ModelError;
 }

@@ -1,26 +1,23 @@
 # @nan0web/types — Next Steps
 
-## v1.3.0 ✅ (Current)
+## v1.5.0 — Total Logic Isolation & i18n Contract ✅ (Current)
 
-- [x] `resolveAliases()` — alias resolution for Model-as-Schema
-- [x] `resolveDefaults()` — default values from static class metadata
-- [x] Fix NaN0.TAB (two spaces for NaN0 format)
-- [x] Fix NaN0 parseArrayWithComments: nested objects
-- [x] Fix Parser tests alignment with default tab
-- [x] Fix Enum tests resilience across Node.js versions
-- [x] Fix README.md.js loadDocument handling for .md files
-- [x] Fix leading-zero number parsing (0123 → string)
-- [x] Add CONTRIBUTING.md
-- [x] Add test:all script
-- [x] 259/259 pass, 0 fail
+- [x] **TFunction**: Централізовано контракт перекладу в `@nan0web/types`.
+- [x] **Recursive Plurals**: Підтримка вкладених об'єктів перекладу.
+- [x] **Numeric Shorthand**: Число як автоматичний $count для змінних (apples: 5).
+- [x] **ModelError**: Структуровані помилки валідації з підтримкою TFunction.
+- [x] **resolveValidation**: Валідація за метаданими з викиданням ModelError.
+- [x] **Refactoring**: Розділення на `/domain` та `/utils`.
+- [x] **Test Migration**: Перехід на `describe > it` та 270/270 PASS.
+- [x] **Documentation**: Оновлено README.md.js та README.md (EN/UK).
 
-## v1.4.0 — Release Infrastructure & NaN0 Improvements
+## v1.6.0 — Future Improvements
 
-- [ ] **AGRP Release Protocol**: Створити `releases/` структуру, `task.spec.js`, `release:spec`, `release:verify`, `release:close` скрипти
-- [ ] Fix TODO: `should parse number as string if it defined by Body type` — NaN0 parse з Body schema
-- [ ] Fix TODO: `How to parse retrieve comments from the source` — comment extraction
-- [ ] `resolveAliases` → перенести до базового `@nan0web/core` пакету
+- [ ] `resolveAliases` → перенести до базового `@nan0web/core` пакету.
+- [ ] Fix TODO: `should parse number as string if it defined by Body type` — NaN0 parse з Body schema.
+- [ ] Fix TODO: `How to parse retrieve comments from the source` — comment extraction.
+- [ ] **AGRP Release Protocol**: Впровадити `releases/` структуру та автоматизовану верифікацію.
 
 ---
 
-_Оновлено: 2026-03-02_
+_Оновлено: 2026-03-09_

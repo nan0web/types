@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { notEmpty, empty } from '../index.js'
+import { notEmpty } from '../../utils/core.js'
 import NonEmptyObject from './NonEmptyObject.js'
 
 describe('NonEmptyObject', () => {
