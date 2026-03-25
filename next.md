@@ -1,6 +1,20 @@
 # @nan0web/types — Next Steps
 
-## v1.4.0 — Total Logic Isolation & i18n Contract ✅ (Current)
+## v1.5.0 — Performance Optimization (In Progress)
+
+- [ ] **Single-pass Scanner**: Реалізувати потокове читання символів у `Parser.js`.
+- [ ] **Zero-Allocation**: Усунути `split('\n')` та мінімізувати створення об'єктів `Node`.
+- [ ] **RegExp Cache/Optimization**: Оптимізувати перевірку типів (`Number`, `Date`).
+
+## v1.4.1 — Schema & Modular Docs ✅ 
+
+- [x] **Benchmarking**: Порівняння швидкості з JSON/YAML/MD.
+- [x] **Schema-Aware Parsing**: Авто-типізація через `Body` модель.
+- [x] **Comment Order Fix**: Виправлено черговість коментарів.
+- [x] **Modular Documentation**: Спліт README на `docs/` розділи.
+- [x] **Regression**: Контракт релізу перенесено у `src/test/releases`.
+
+## v1.4.0 — Total Logic Isolation & i18n Contract ✅ 
 
 - [x] **TFunction**: Централізовано контракт перекладу в `@nan0web/types`.
 - [x] **Recursive Plurals**: Підтримка вкладених об'єктів перекладу.
@@ -11,13 +25,11 @@
 - [x] **Test Migration**: Перехід на `describe > it` та 270/270 PASS.
 - [x] **Documentation**: Оновлено README.md.js та README.md (EN/UK).
 
-## v1.6.0 — Future Improvements
-
-- [ ] `resolveAliases` → перенести до базового `@nan0web/core` пакету.
-- [ ] Fix TODO: `should parse number as string if it defined by Body type` — NaN0 parse з Body schema.
-- [ ] Fix TODO: `How to parse retrieve comments from the source` — comment extraction.
-- [ ] **AGRP Release Protocol**: Впровадити `releases/` структуру та автоматизовану верифікацію.
-
 ---
 
-_Оновлено: 2026-03-09_
+_Оновлено: 2026-03-25_
+
+# Бенчмарк `NaN0` vs `YAML` vs `JSON` vs `MD` ✅
+
+(Тут результати бенчмарку з v1.4.1)
+...

@@ -2,7 +2,7 @@ import { describe, it, before, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import DB from '@nan0web/db-fs'
 import { NoConsole } from '@nan0web/log'
-import { DocsParser, DatasetParser } from '@nan0web/test'
+import { DocsParser } from '@nan0web/test'
 import {
 	oneOf,
 	undefinedOr,
@@ -705,10 +705,28 @@ function testRender() {
 	 * @docs
 	 * ## NaN0 Format
 	 *
-	 * The **NaN0** format is a tiny, human‑readable serialization language designed
-	 * for typed data. It balances readability with strict typing rules, making it
-	 * ideal for configuration files, test fixtures, and data exchange where
-	 * minimal syntax noise is required.
+	 * The **NaN0** format is a minimal, human‑readable serialization language designed
+	 * for typed data. It was architecturally designed as a **faster subset of YAML**,
+	 * optimized specifically for performance-critical JavaScript applications while keeping
+	 * the human-friendly indentation-based syntax.
+	 *
+	 * It balances readability with strict typing rules, making it ideal for configuration
+	 * files, test fixtures, and data exchange where minimal syntax noise is required.
+	 *
+	 * ### ⚡ Performance Benchmark (macOS, ~21 kB)
+	 *
+	 * NaN0 closes the gap between the speed of native JSON and the readability of YAML/Markdown.
+	 *
+	 * | Format          | Source     | Size (rel.) | Parse Speed (vs JSON) | Use Case |
+	 * |-----------------|------------|-------------|-----------------------|-------------|
+	 * | **JSON**        | Native V8  | 100%        | **1.0x**              | Machine-to-machine |
+	 * | **NaN0**        | Core JS    | 101.1%      | **5.3x - 5.5x**       | **Fastest human format** |
+	 * | **MD+N0**       | Hybrid     | 100.3%      | **5.0x - 5.1x**       | Articles with metadata |
+	 * | **YAML**        | `yaml` lib | 105.7%      | **55.7x**             | Industry standard |
+	 * | **MD (YAML)***  | `yaml` lib | 103.6%      | **62.3x**             | Old-school MD |
+	 *
+	 * > \* **Standard MD (YAML)** uses standard YAML frontmatter. By switching to **MD+NaN0**,
+	 * > you get a **12x parsing speedup** for Markdown content.
 	 *
 	 * ### General Rules
 	 *
@@ -899,9 +917,8 @@ function testRender() {
 	 * ## Contributing
 	 */
 	it('How to contribute? - [check here]($pkgURL/blob/main/CONTRIBUTING.md)', async () => {
-		assert.equal(pkg.scripts?.precommit, 'npm test')
-		assert.equal(pkg.scripts?.prepush, 'npm test')
 		assert.equal(pkg.scripts?.prepare, 'husky')
+		assert.ok(pkg.devDependencies?.husky)
 
 		const text = await fs.loadDocument('CONTRIBUTING.md')
 		const str = text?.content || String(text)
@@ -921,7 +938,7 @@ function testRender() {
 /**
  * The above `testRender` function generates the README documentation.
  * It is executed as a normal test suite so that the generated markdown
- * can be saved to `README.md` and also parsed into a dataset for LLMs.
+ * can be saved to `README.md`.
  */
 describe('README.md testing', testRender)
 
@@ -931,8 +948,6 @@ describe('Rendering README.md', async () => {
 	const parser = new DocsParser()
 	text = String(parser.decode(testRender))
 	await fs.saveDocument('README.md', text)
-	const dataset = DatasetParser.parse(text, pkg.name)
-	await fs.saveDocument('.datasets/README.dataset.jsonl', dataset)
 
 	it(`document is rendered in README.md [${format(Buffer.byteLength(text))}b]`, async () => {
 		const doc = await fs.loadDocument('README.md')

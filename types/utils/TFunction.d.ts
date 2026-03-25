@@ -16,5 +16,4 @@
 export function createT(vocab?: {
     [x: string]: string;
 } | Map<string, string>, locale?: string): TFunction;
-export default createT;
 export type TFunction = (arg0: string, arg1: Record<string, any> | undefined) => string;

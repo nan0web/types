@@ -29,7 +29,13 @@ export default class NaN0 {
     static COMMENT_START: string;
     static numberRegex: RegExp;
     static dateRegex: RegExp;
-    static parseValue(str: any): any;
+    /**
+     * @param {string} str
+     * @param {string} [key]
+     * @param {Context} [context]
+     * @returns {any}
+     */
+    static parseValue(str: string, key?: string, context?: Context): any;
     static formatValue(value: any): string;
     /**
      * @param {string} text

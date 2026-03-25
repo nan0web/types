@@ -36,9 +36,22 @@ export default class NaN0 {
 	static numberRegex = /^-?\d+(?:_\d+)*(?:\.\d+(?:_\d+)*)?$/
 	static dateRegex = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2})?(?:[+-]\d{2}:\d{2}|[+-]\d{4}|Z)?)?$/
 
-	static parseValue(str) {
+	/**
+	 * @param {string} str
+	 * @param {string} [key]
+	 * @param {Context} [context]
+	 * @returns {any}
+	 */
+	static parseValue(str, key, context) {
 		const s = str.trim()
 		if (s === '') return ''
+
+		// Check if the type is explicitly defined as String in the Body schema
+		const bodyType = context?.Body
+		if (bodyType === /** @type {any} */ (String) || (key && (/** @type {any} */ (bodyType))?.[key]?.type === String)) {
+			return s
+		}
+
 		// number first to avoid parsing as Date(ms)
 		if (this.numberRegex.test(s)) {
 			// Leading zero (but not 0 or 0.xxx) means string
@@ -239,26 +252,24 @@ export default class NaN0 {
 		const isArray = firstContent.startsWith('- ')
 		let result
 		if (isArray) {
-			const arrayChildren = allChildren.slice(i)
-			context.i = i
-			result = this.parseArrayWithComments(arrayChildren, level, context)
 			if (topComments) {
-				/*  Same logic as for empty arrays – comment index should be
-				 *  `[0]` at the root level, otherwise keep the original
-				 *  calculation based on the node position. */
 				const commentId = level === 0 ? `[0]` : `[${i}]`
 				context.comments?.push({ text: topComments, id: commentId })
 			}
+			const arrayChildren = allChildren.slice(i)
+			context.i = i
+			result = this.parseArrayWithComments(arrayChildren, level, context)
 		} else {
+			if (topComments) {
+				context.comments?.push({ text: topComments, id: nextIdx })
+			}
 			const objectChildren = allChildren.slice(i)
 			context.i = i
 			context.next = nextIdx
 			result = this.parseObjectWithComments(objectChildren, level, context)
-			if (topComments) {
-				context.comments?.push({ text: topComments, id: nextIdx })
-			}
 		}
-		return context.Body ? new context.Body(result) : result
+		const isPrimitive = [String, Number, Boolean].includes(/** @type {any} */ (context.Body))
+		return context.Body && !isPrimitive ? new (/** @type {any} */ (context.Body))(result) : result
 	}
 
 	/**
@@ -288,6 +299,11 @@ export default class NaN0 {
 			let valuePart = fieldContent.substring(colonIdx + 1).trim()
 			const hasChildren = fieldNode.children.length > 0
 
+			if (currentComments) {
+				context.comments?.push({ text: currentComments, id: key || '.' })
+				currentComments = ''
+			}
+
 			let value
 			if (valuePart === this.MULTILINE_START) {
 				// multiline
@@ -297,8 +313,12 @@ export default class NaN0 {
 					.join(this.NEW_LINE)
 				value = lines
 			} else if (valuePart === '' && hasChildren) {
-				// container
-				value = this.parseContainer(fieldNode.children, level + 1)
+				// container - infer sub-Body if available
+				const subContext = { ...context, comments: [], Body: undefined }
+				if (context.Body?.[key]) {
+					subContext.Body = context.Body[key].itemType || context.Body[key].type
+				}
+				value = this.parseContainer(fieldNode.children, level + 1, subContext)
 			} else {
 				// same line
 				if (valuePart === this.EMPTY_ARRAY) {
@@ -306,12 +326,8 @@ export default class NaN0 {
 				} else if (valuePart === this.EMPTY_OBJECT) {
 					value = {}
 				} else {
-					value = this.parseValue(valuePart)
+					value = this.parseValue(valuePart, key, context)
 				}
-			}
-			if (currentComments) {
-				context.comments?.push({ text: currentComments, id: key || '.' })
-				currentComments = ''
 			}
 			obj[key] = value
 			i++
@@ -350,7 +366,7 @@ export default class NaN0 {
 			let value
 			let name
 			if (!hasChildren) {
-				value = this.parseValue(content)
+				value = this.parseValue(content, undefined, context)
 			} else {
 				const colonIdx = content.indexOf(':')
 				if (content === this.MULTILINE_START) {
@@ -362,13 +378,19 @@ export default class NaN0 {
 				} else if (colonIdx !== -1) {
 					name = content.substring(0, colonIdx).trim()
 					const valPart = content.substring(colonIdx + 1).trim()
+
+					const subContext = { ...context, comments: [], Body: undefined }
+					if (context.Body?.[name]) {
+						subContext.Body = context.Body[name].itemType || context.Body[name].type
+					}
+
 					if (valPart === '') {
 						// key with no inline value → children form a nested container
-						const childrenVal = this.parseContainer(itemNode.children, level + 1)
+						const childrenVal = this.parseContainer(itemNode.children, level + 1, subContext)
 						value = { [name]: childrenVal }
 					} else {
-						const childrenVal = this.parseContainer(itemNode.children, level + 1)
-						value = { [name]: this.parseValue(valPart) }
+						const childrenVal = this.parseContainer(itemNode.children, level + 1, subContext)
+						value = { [name]: this.parseValue(valPart, name, context) }
 						if (childrenVal && typeof childrenVal === 'object' && !Array.isArray(childrenVal)) {
 							Object.assign(value, childrenVal)
 						} else {
@@ -376,7 +398,7 @@ export default class NaN0 {
 						}
 					}
 				} else if (content === '') {
-					value = this.parseContainer(itemNode.children, level + 1)
+					value = this.parseContainer(itemNode.children, level + 1, context)
 				} else {
 					throw new Error(
 						`Invalid array item with children at level ${level}: "${itemNode.content}"`,
@@ -390,9 +412,6 @@ export default class NaN0 {
 			arr.push(value)
 			i++
 			currentComments = ''
-		}
-		if (currentComments) {
-			context.comments?.push({ text: currentComments, id: '[0]' })
 		}
 		return arr
 	}
@@ -561,11 +580,7 @@ export default class NaN0 {
 	static parse(input, context = { comments: [], Body: undefined }) {
 		const parser = new Parser({ eol: this.NEW_LINE, tab: this.TAB })
 		const root = parser.decode(input)
-		const result = this.parseContainer(root.children, 0, context)
-		// Preserve original comment order (parser collects bottom‑up).
-		context.comments = context.comments?.reverse()
-		// Return plain result – do **not** wrap into `new context.Body`.
-		return result
+		return this.parseContainer(root.children, 0, context)
 	}
 
 	/**

@@ -1,6 +1,6 @@
 # @nan0web/types
 
-[English](README.md) | [Українська](docs/uk/README.md)
+[English](README.md) | [Українська](../uk/README.md)
 
 <!-- %PACKAGE_STATUS% -->
 

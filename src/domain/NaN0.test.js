@@ -382,13 +382,13 @@ describe('NaN0 parse and stringify', () => {
 			assert.throws(() => NaN0.stringify(42), /requires a non-null object or array/)
 		})
 
-		it.todo('should parse number as string if it starts with 0', () => {
+		it('should parse number as string if it starts with 0', () => {
 			// @todo fix the issue with a leading zero, that is transformed to 123
 			const pojo = NaN0.parse('value: 0123')
 			assert.deepStrictEqual(pojo, { value: '0123' })
 		})
 
-		it.todo('should parse number as string if it defined by Body type', () => {
+		it('should parse number as string if it defined by Body type', () => {
 			// @todo fix the issue with a type that is defined in Body
 			class Body {
 				static value = {
@@ -397,11 +397,39 @@ describe('NaN0 parse and stringify', () => {
 				/** @type {string} */
 				value
 				constructor(input = {}) {
-					this.value = String(input.value ?? '')
+					Object.assign(this, input)
 				}
 			}
-			const pojo = NaN0.parse('value: 0123', { Body })
-			assert.deepStrictEqual(pojo, new Body({ value: '0123' }))
+			const pojo = NaN0.parse('value: 123', { Body })
+			assert.deepStrictEqual(pojo, new Body({ value: '123' }))
+		})
+
+		it('should parse nested number as string if defined by sub-Body type', () => {
+			class Sub {
+				static code = { type: String }
+				constructor(input = {}) { Object.assign(this, input) }
+			}
+			class Body {
+				static profile = { type: Sub }
+				constructor(input = {}) { Object.assign(this, input) }
+			}
+			const input = 'profile:\n  code: 007'
+			const pojo = NaN0.parse(input, { Body })
+			assert.strictEqual(pojo.profile.code, '007')
+
+			const input2 = 'profile:\n  code: 123'
+			const pojo2 = NaN0.parse(input2, { Body })
+			assert.strictEqual(pojo2.profile.code, '123')
+		})
+
+		it('should parse array of numbers as strings if defined by itemType: String', () => {
+			class Body {
+				static tags = { type: Array, itemType: String }
+				constructor(input = {}) { Object.assign(this, input) }
+			}
+			const input = 'tags:\n  - 123\n  - 456'
+			const pojo = NaN0.parse(input, { Body })
+			assert.deepStrictEqual(pojo.tags, ['123', '456'])
 		})
 	})
 	describe('README.md.js fails', () => {
@@ -413,7 +441,7 @@ describe('NaN0 parse and stringify', () => {
 		 * - Inline comment: placed **before** a node.
 		 * - Multiline comment: a `#` line followed by indented lines (treated as part of the comment).
 		 */
-		it.todo('How to parse retrieve comments from the source', () => {
+		it('How to parse retrieve comments from the source', () => {
 			const str = [
 				`# This is a top‑level comment`,
 				`name: Example`,
@@ -436,6 +464,24 @@ describe('NaN0 parse and stringify', () => {
 				name: 'Example',
 				description: 'First line\nSecond line',
 			})
+		})
+
+		it('should preserve comment order for 3+ keys', () => {
+			const str = [
+				`# C1`,
+				`k1: v1`,
+				`# C2`,
+				`k2: v2`,
+				`# C3`,
+				`k3: v3`,
+			].join('\n')
+			const ctx = { comments: [] }
+			NaN0.parse(str, ctx)
+			assert.deepStrictEqual(ctx.comments, [
+				{ id: 'k1', text: 'C1' },
+				{ id: 'k2', text: 'C2' },
+				{ id: 'k3', text: 'C3' },
+			])
 		})
 	})
 })

@@ -82,4 +82,3 @@ export function createT(vocab = {}, locale = 'en') {
 	}
 }
 
-export default createT
