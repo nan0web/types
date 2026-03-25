@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import Parser from '../../../../src/domain/Parser/Parser.js'
-import NaN0 from '../../../../src/domain/NaN0.js'
+import Parser from '../../../../../../src/domain/Parser/Parser.js'
+import NaN0 from '../../../../../../src/domain/NaN0.js'
 
 describe('Release v1.5.0 Contract (Single-pass Scanner)', () => {
 
@@ -23,7 +23,7 @@ describe('Release v1.5.0 Contract (Single-pass Scanner)', () => {
 			'  child2:',
 			'    sub: 42',
 			'sibling: null'
-		].join('\\n')
+		].join('\n')
 		
 		const tree = parser.decode(text)
 		

@@ -35,6 +35,8 @@ export default class NaN0 {
 
 	static numberRegex = /^-?\d+(?:_\d+)*(?:\.\d+(?:_\d+)*)?$/
 	static dateRegex = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2})?(?:[+-]\d{2}:\d{2}|[+-]\d{4}|Z)?)?$/
+	static tzSuffixRegex = /[+-]\d{4}$/
+	static tzMatchRegex = /([+-]\d{4})$/
 
 	/**
 	 * @param {string} str
@@ -44,57 +46,51 @@ export default class NaN0 {
 	 */
 	static parseValue(str, key, context) {
 		const s = str.trim()
-		if (s === '') return ''
+		if (s.length === 0) return ''
 
-		// Check if the type is explicitly defined as String in the Body schema
+		// Priority 1: Check if the type is explicitly defined as String in the Body schema
 		const bodyType = context?.Body
 		if (bodyType === /** @type {any} */ (String) || (key && (/** @type {any} */ (bodyType))?.[key]?.type === String)) {
 			return s
 		}
 
-		// number first to avoid parsing as Date(ms)
-		if (this.numberRegex.test(s)) {
-			// Leading zero (but not 0 or 0.xxx) means string
-			if (s.length > 1 && s[0] === '0' && s[1] !== '.') {
-				return s
-			}
-			const cleanNum = s.replace(/_/g, '')
-			const asNum = Number(cleanNum)
-			if (!isNaN(asNum)) {
-				return asNum
-			}
-		}
-		// date
-		if (this.dateRegex.test(s)) {
-			let dateStr = s
-			// Fix timezone without colon, e.g. +0000 -> +00:00
-			if (s.match(/[+-]\d{4}$/) && !s.includes(':')) {
-				const tzMatch = s.match(/([+-]\d{4})$/)
-				if (tzMatch) {
-					const tz = tzMatch[1]
-					const hh = tz.substring(1, 3)
-					const mm = tz.substring(3)
-					dateStr = s.replace(tz, `${tz[0]}${hh}:${mm}`)
-				}
-			}
-			const asDate = new Date(dateStr)
-			if (!isNaN(asDate.getTime())) {
-				return asDate
-			}
-		}
-		// bool null
+		// Priority 2: Booleans, Null, Empty collections (Quick string checks)
 		if (s === 'true') return true
 		if (s === 'false') return false
 		if (s === 'null') return null
-		// quoted string
-		if (s.startsWith('"') && s.endsWith('"')) {
+
+		// Priority 3: Numbers (Frequent in data)
+		const firstChar = s[0]
+		if ((firstChar >= '0' && firstChar <= '9') || firstChar === '-') {
+			if (this.numberRegex.test(s)) {
+				if (s.length > 1 && s[0] === '0' && s[1] !== '.') return s
+				const asNum = Number(s.replace(/_/g, ''))
+				if (!isNaN(asNum)) return asNum
+			}
+			// Date check (only if it starts like a number)
+			if (s.length >= 10 && this.dateRegex.test(s)) {
+				let dateStr = s
+				if (this.tzSuffixRegex.test(s) && !s.includes(':')) {
+					const tzMatch = s.match(this.tzMatchRegex)
+					if (tzMatch) {
+						const tz = tzMatch[1]
+						dateStr = s.replace(tz, `${tz[0]}${tz.substring(1, 3)}:${tz.substring(3)}`)
+					}
+				}
+				const asDate = new Date(dateStr)
+				if (!isNaN(asDate.getTime())) return asDate
+			}
+		}
+
+		// Priority 4: Quoted strings
+		if (firstChar === '"' && s.endsWith('"')) {
 			try {
 				return JSON.parse(s)
 			} catch {
 				return s.slice(1, -1)
 			}
 		}
-		// plain string
+
 		return s
 	}
 
@@ -564,23 +560,205 @@ export default class NaN0 {
 	}
 
 	/**
-	 * Parses the NaN0 format into an object or array.
+	 * Parses the NaN0 format into an object or array using a high-performance state machine.
 	 *
 	 * @param {string} input - NaN0 formatted text.
 	 * @param {Context} [context={ comments: [], Body: undefined }]
 	 * @returns {any} Parsed JavaScript value (object/array).
-	 *
-	 * NOTE:
-	 *   The original implementation wrapped the result into a `new context.Body`
-	 *   instance when a `Body` class was supplied.  This caused the reference‑
-	 *   equality test in the README suite to fail.  The parser now always
-	 *   returns the plain parsed value; the caller can instantiate a body class
-	 *   manually if needed.
 	 */
 	static parse(input, context = { comments: [], Body: undefined }) {
 		const parser = new Parser({ eol: this.NEW_LINE, tab: this.TAB })
-		const root = parser.decode(input)
-		return this.parseContainer(root.children, 0, context)
+		let result = null
+		let lineNum = 0
+		
+		/** @type {Array<{ val: any, indent: number, type: 'object' | 'array', key?: string, multiline?: boolean, Body?: any }>} */
+		const stack = []
+		let bufferedComments = ''
+		let lastCommentIndent = -1
+		let hasItems = false
+
+		parser.scanLines(input, (line, indent, ln, start, end) => {
+			lineNum = ln
+			const content = line.trim()
+			
+			if (content === '') return
+
+			// 0. Multiline string collection (MUST be checked before comments)
+			// Pop frames that are at or above current indent
+			while (stack.length && indent <= stack[stack.length - 1].indent) {
+				stack.pop()
+			}
+			const topFrame = stack[stack.length - 1]
+			if (topFrame?.multiline) {
+				topFrame.val[/** @type {string} */ (topFrame.key)] += (topFrame.val[/** @type {string} */ (topFrame.key)] ? '\n' : '') + content
+				return
+			}
+
+			// 1. Comment continuation (indented lines after a # line)
+			if (lastCommentIndent >= 0 && indent > lastCommentIndent) {
+				bufferedComments += (bufferedComments ? '\n' : '') + content
+				return
+			}
+			lastCommentIndent = -1
+
+			// 2. Comments handling
+			if (content.startsWith('#')) {
+				const text = content.startsWith('# ') ? content.slice(2) : content.slice(1)
+				bufferedComments += (bufferedComments ? '\n' : '') + text.trim()
+				lastCommentIndent = indent
+				return
+			}
+
+			let parentFrame = topFrame
+			
+			// Initial root determination
+			if (!parentFrame) {
+				const isArrayStart = content === this.EMPTY_ARRAY || content.startsWith('- ')
+				result = content === this.EMPTY_ARRAY ? [] : (isArrayStart ? [] : {})
+				parentFrame = { val: result, indent: -1, type: isArrayStart ? 'array' : 'object', Body: context.Body }
+				stack.push(parentFrame)
+				// Defer comments for the first key
+				if (content === this.EMPTY_ARRAY || content === this.EMPTY_OBJECT) {
+					if (bufferedComments) {
+						context.comments?.push({ text: bufferedComments, id: isArrayStart ? '[0]' : '.' })
+						bufferedComments = ''
+					}
+					hasItems = true
+					return
+				}
+			}
+
+			// Attached comments helper
+			const attachComment = (id) => {
+				if (bufferedComments) {
+					context.comments?.push({ text: bufferedComments, id })
+					bufferedComments = ''
+				}
+			}
+
+			// 3. Dynamic transition from inferred object to array if child starts with '- '
+			if (parentFrame.type === 'object' && content.startsWith('- ') && parentFrame.key) {
+				const newVal = []
+				const grandFrame = stack[stack.length - 2]
+				if (grandFrame) grandFrame.val[parentFrame.key] = newVal
+				else result = newVal
+				parentFrame.val = newVal
+				parentFrame.type = 'array'
+				parentFrame.Body = parentFrame.Body?.itemType || parentFrame.Body
+			}
+
+			// 4. Parse Content
+			if (parentFrame.type === 'array') {
+				if (!content.startsWith('- ')) throw new Error(`Invalid array item at line ${lineNum}`)
+				const itemContent = content.slice(2).trim()
+				const itemIndex = parentFrame.val.length
+				const commentId = `[${itemIndex}]`
+				
+				if (itemContent === this.EMPTY_ARRAY) {
+					parentFrame.val.push([])
+					attachComment(commentId)
+				} else if (itemContent === this.EMPTY_OBJECT) {
+					parentFrame.val.push({})
+					attachComment(commentId)
+				} else if (itemContent.includes(':')) {
+					// Array item is an object starting with a key
+					const colonIdx = itemContent.indexOf(':')
+					const key = itemContent.substring(0, colonIdx).trim()
+					const valPart = itemContent.substring(colonIdx + 1).trim()
+					const obj = {}
+					parentFrame.val.push(obj)
+					attachComment(key)
+					
+					// Infer sub-Body
+					let subBody = parentFrame.Body
+					if (parentFrame.Body?.[key]) {
+						const bp = parentFrame.Body[key]
+						subBody = bp.itemType || bp.type
+					}
+
+					stack.push({ val: obj, indent, type: 'object', key, Body: parentFrame.Body })
+
+					if (valPart !== '') {
+						obj[key] = this.parseValue(valPart, key, { Body: subBody })
+					} else {
+						const subObj = {}
+						obj[key] = subObj
+						stack.push({ val: subObj, indent, type: 'object', key, Body: subBody })
+					}
+				} else if (itemContent === this.MULTILINE_START) {
+					const idx = parentFrame.val.length
+					parentFrame.val.push('')
+					stack.push({ val: parentFrame.val, indent, type: 'array', key: idx, multiline: true, Body: parentFrame.Body })
+					attachComment(commentId)
+				} else {
+					parentFrame.val.push(this.parseValue(itemContent, undefined, { Body: parentFrame.Body }))
+					attachComment(commentId)
+				}
+			} else {
+				// Object content
+				// Object content (transition check for explicit empty collections)
+				if (content === this.MULTILINE_START) {
+					const grandFrame = stack[stack.length - 2]
+					if (grandFrame) grandFrame.val[/** @type {string} */ (parentFrame.key)] = ''
+					parentFrame.val = grandFrame ? grandFrame.val : parentFrame.val
+					parentFrame.key = parentFrame.key
+					parentFrame.multiline = true
+					return
+				}
+				if (content === this.EMPTY_ARRAY || content === this.EMPTY_OBJECT) {
+					const newVal = content === this.EMPTY_ARRAY ? [] : {}
+					const grandFrame = stack[stack.length - 2]
+					if (grandFrame) grandFrame.val[/** @type {string} */ (parentFrame.key)] = newVal
+					else result = newVal
+					parentFrame.val = newVal
+					parentFrame.type = content === this.EMPTY_ARRAY ? 'array' : 'object'
+					return
+				}
+				const colonIdx = content.indexOf(':')
+				if (colonIdx === -1) throw new Error(`Invalid object field (no colon) at line ${lineNum}: ${content}`)
+				const key = content.substring(0, colonIdx).trim()
+				const valPart = content.substring(colonIdx + 1).trim()
+				
+				attachComment(key)
+
+				// Infer sub-Body
+				let subBody = undefined
+				const bodyProp = parentFrame.Body?.[key] || (/** @type {any} */ (parentFrame.Body))?.[key]
+				if (bodyProp) subBody = bodyProp.itemType || bodyProp.type
+
+				if (valPart === this.MULTILINE_START) {
+					parentFrame.val[key] = ''
+					stack.push({ val: parentFrame.val, indent, type: 'object', key, multiline: true, Body: subBody })
+				} else if (valPart === this.EMPTY_ARRAY) {
+					parentFrame.val[key] = []
+				} else if (valPart === this.EMPTY_OBJECT) {
+					parentFrame.val[key] = {}
+				} else if (valPart === '') {
+					const obj = {}
+					parentFrame.val[key] = obj
+					stack.push({ val: obj, indent, type: 'object', key, Body: subBody })
+				} else {
+					parentFrame.val[key] = this.parseValue(valPart, key, { Body: subBody || parentFrame.Body })
+				}
+			}
+			hasItems = true
+		})
+
+		// 4. Default result for empty input
+		if (!hasItems) {
+			result = result || {}
+			if (bufferedComments) {
+				context.comments?.push({ text: bufferedComments, id: '.' })
+			}
+		}
+
+		// Post-process Body instantiation if root context.Body exists
+		if (context.Body && result && typeof result === 'object' && !Array.isArray(result)) {
+			const isPrimitive = [String, Number, Boolean].includes(/** @type {any} */ (context.Body))
+			if (!isPrimitive) return new (/** @type {any} */ (context.Body))(result)
+		}
+
+		return result
 	}
 
 	/**

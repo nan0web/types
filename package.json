@@ -1,6 +1,6 @@
 {
 	"name": "@nan0web/types",
-	"version": "1.4.1",
+	"version": "1.5.0",
 	"description": "Universal system for managing data structures and types in JavaScript applications based on the nan0 philosophy where zero represents the universe.",
 	"type": "module",
 	"main": "src/index.js",
@@ -22,7 +22,6 @@
 	"files": [
 		"src/**/*.js",
 		"types/**/*.d.ts",
-		"docs/**/*.md",
 		"README.md",
 		"!src/**/*.test.js",
 		"!src/README.md.js",

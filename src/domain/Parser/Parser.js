@@ -53,60 +53,85 @@ export default class Parser {
 	}
 
 	/**
-	 * Build the generic tree.
+	 * Build the generic tree using a single-pass scanner.
 	 * @param {string} text
 	 * @returns {Node}
 	 */
 	decode(text) {
-		const rows = String(text).split(this.eol)
 		const root = new Node()
-		/** -1 = virtual root depth */
 		const stack = [{ node: root, indent: -1 }]
-
-		for (let i = 0; i < rows.length; i++) {
-			const raw = rows[i]
-
-			// 1️⃣ always ignore completely empty lines – they carry no semantic value
-			if (raw.trim() === '') {
-				continue
-			}
-			// 2️⃣ skip lines matching any of the supplied skip patterns / functions
-			if (this.skip.some((s) => ('function' === typeof s ? s(raw) : s === raw))) {
-				continue
-			}
-
-			const indent = this.readIndent(raw, rows.slice(0, i))
-			const payload = raw.slice(indent * this.tab.length).trimEnd()
-
-			// ----- find correct parent by popping deeper frames -----
+		
+		this.scanLines(text, (line, indent) => {
 			while (stack.length && indent <= stack[stack.length - 1].indent) {
 				stack.pop()
 			}
-			if (0 === stack.length) {
-				throw new Error(
-					[
-						['Parsing error at row #', i + 1],
-						...rows
-							.slice(Math.max(0, i - 3), Math.max(0, i))
-							.map((s, j) => [`#${i - 3 + j} > ${s}`]),
-						[`#${i + 1} > ${rows[i]}`],
-						...rows.slice(Math.min(0, i), Math.min(0, i + 3)).map((s, j) => [`#${i + j} > ${s}`]),
-					]
-						.map((s) => s.join(''))
-						.join('\n'),
-				)
-			}
+			if (stack.length === 0) throw new Error(`Parsing error: invalid indent`)
 			const parent = stack[stack.length - 1].node
-
-			// ----- create a new generic node -----
-			const node = new Node({ content: payload, indent })
+			const node = new Node({ content: line, indent })
 			parent.children.push(node)
-
-			// ----- push it onto the stack – it may own children -----
 			stack.push({ node, indent })
-		}
+		})
 
 		return root
+	}
+
+	/**
+	 * Advanced pointer-based scanner.
+	 * Calls callback for each valid line with (content, indent, lineNum, start, end).
+	 * @param {string} text
+	 * @param {function(string, number, number, number, number): void} callback
+	 */
+	scanLines(text, callback) {
+		const str = String(text)
+		const len = str.length
+		const eol = this.eol
+		const eolLen = eol.length
+		const tabLen = this.tab.length
+		const skip = this.skip
+		
+		let pos = 0
+		let lineNum = 0
+
+		while (pos < len) {
+			let end = str.indexOf(eol, pos)
+			if (end === -1) end = len
+			
+			const lineNumCurrent = ++lineNum
+			const lineStart = pos
+			const lineEnd = end
+			pos = end + eolLen
+
+			// Fast check for empty line (skip whitespace)
+			let contentStart = lineStart
+			while (contentStart < lineEnd && str[contentStart] <= ' ') contentStart++
+			if (contentStart === lineEnd) continue // Empty line
+
+			// Calculate indent without slice
+			let indent = 0
+			let indentPos = lineStart
+			while (indentPos + tabLen <= lineEnd) {
+				let match = true
+				for (let j = 0; j < tabLen; j++) {
+					if (str[indentPos + j] !== this.tab[j]) {
+						match = false
+						break
+					}
+				}
+				if (!match) break
+				indent++
+				indentPos += tabLen
+			}
+
+			// Skip patterns
+			if (skip.length > 0) {
+				const raw = str.slice(lineStart, lineEnd)
+				if (skip.some(s => typeof s === 'function' ? s(raw) : s === raw)) continue
+			}
+
+			// Extract only when necessary (or use pointer-based logic in callback)
+			const content = str.slice(indentPos, lineEnd).trimEnd()
+			callback(content, indent, lineNumCurrent, indentPos, lineEnd)
+		}
 	}
 
 	/**

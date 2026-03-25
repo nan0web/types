@@ -39,11 +39,18 @@ export default class Parser {
      */
     readIndent(str: string, prevRows?: string[]): number;
     /**
-     * Build the generic tree.
+     * Build the generic tree using a single-pass scanner.
      * @param {string} text
      * @returns {Node}
      */
     decode(text: string): Node;
+    /**
+     * Advanced pointer-based scanner.
+     * Calls callback for each valid line with (content, indent, lineNum, start, end).
+     * @param {string} text
+     * @param {function(string, number, number, number, number): void} callback
+     */
+    scanLines(text: string, callback: (arg0: string, arg1: number, arg2: number, arg3: number, arg4: number) => void): void;
     /**
      * Stringify the generic tree.
      * @param {Node} node

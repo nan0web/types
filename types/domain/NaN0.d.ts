@@ -29,6 +29,8 @@ export default class NaN0 {
     static COMMENT_START: string;
     static numberRegex: RegExp;
     static dateRegex: RegExp;
+    static tzSuffixRegex: RegExp;
+    static tzMatchRegex: RegExp;
     /**
      * @param {string} str
      * @param {string} [key]
@@ -77,18 +79,11 @@ export default class NaN0 {
     static addValueToNode(parent: any, value: any, level: any, key: any): void;
     static addArrayItemToNode(parent: any, item: any, level: any): void;
     /**
-     * Parses the NaN0 format into an object or array.
+     * Parses the NaN0 format into an object or array using a high-performance state machine.
      *
      * @param {string} input - NaN0 formatted text.
      * @param {Context} [context={ comments: [], Body: undefined }]
      * @returns {any} Parsed JavaScript value (object/array).
-     *
-     * NOTE:
-     *   The original implementation wrapped the result into a `new context.Body`
-     *   instance when a `Body` class was supplied.  This caused the reference‑
-     *   equality test in the README suite to fail.  The parser now always
-     *   returns the plain parsed value; the caller can instantiate a body class
-     *   manually if needed.
      */
     static parse(input: string, context?: Context): any;
     /**

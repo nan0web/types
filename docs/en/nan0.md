@@ -11,12 +11,12 @@ NaN0 closes the gap between the speed of native JSON and the readability of YAML
 | Format          | Library    | Size (rel.) | Parse Speed (vs JSON) | Why use it? |
 |-----------------|------------|-------------|-----------------------|-------------|
 | **JSON**        | Native V8  | 100%        | **1.0x**              | Best for protocols |
-| **NaN0**        | Core JS    | 101.1%      | **5.3x**              | **Fastest human format** |
-| **MD+N0**       | Hybrid     | 100.3%      | **5.0x**              | Articles with metadata |
-| **YAML**        | `yaml` lib | 105.7%      | **55.7x**             | Industry standard |
-| **MD (YAML)***  | `yaml` lib | 103.6%      | **62.3x**             | Default Jekyll/Hugo |
+| **NaN0**        | Core JS    | 101.1%      | **2.1x**              | **Fastest human format** |
+| **MD+N0**       | Hybrid     | 100.3%      | **1.8x**              | Articles with metadata |
+| **YAML**        | `yaml` lib | 105.7%      | **65.0x**             | Industry standard |
+| **MD (YAML)***  | `yaml` lib | 103.6%      | **66.0x**             | Default Jekyll/Hugo |
 
-> \* **Standard MD (YAML)** uses standard YAML frontmatter. By switching to **MD+NaN0**, you get a **12x speedup** for parsing content with metadata.
+> \* **Standard MD (YAML)** uses standard YAML frontmatter. By switching to **MD+NaN0**, you get a **36x parsing speedup** for articles with metadata.
 
 ---
 

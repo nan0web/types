@@ -1,15 +1,16 @@
 # @nan0web/types — Next Steps
 
-## v1.5.0 — Performance Optimization (In Progress)
+## v1.5.0 — Performance Optimization ✅
 
-- [ ] **Single-pass Scanner**: Реалізувати потокове читання символів у `Parser.js`.
-- [ ] **Zero-Allocation**: Усунути `split('\n')` та мінімізувати створення об'єктів `Node`.
-- [ ] **RegExp Cache/Optimization**: Оптимізувати перевірку типів (`Number`, `Date`).
+- [x] **Single-pass Scanner**: Реалізувати потокове читання символів у `Parser.js`.
+- [x] **Zero-Allocation**: Усунути `split('\n')` та мінімізувати створення об'єктів `Node`.
+- [x] **RegExp Cache/Optimization**: Оптимізувати перевірку типів (`Number`, `Date`).
 
-## v1.4.1 — Schema & Modular Docs ✅ 
+## v1.4.1 — Schema, Modular Docs & ESM Fixes ✅ 
 
 - [x] **Benchmarking**: Порівняння швидкості з JSON/YAML/MD.
 - [x] **Schema-Aware Parsing**: Авто-типізація через `Body` модель.
+- [x] **ESM Compatibility**: Заміна `as any` (TS) на JSDoc-касти `(/** @type {any} */ (val))` у `.js` файлах.
 - [x] **Comment Order Fix**: Виправлено черговість коментарів.
 - [x] **Modular Documentation**: Спліт README на `docs/` розділи.
 - [x] **Regression**: Контракт релізу перенесено у `src/test/releases`.

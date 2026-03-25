@@ -13,14 +13,14 @@
 
 NaN0 was designed to significantly outperform YAML and standard Markdown while remaining more compact than JSON. Tested with ~21.8 kB payload (10,000 iterations):
 
-| Format    | Size (rel.) | Parse Speed (vs JSON) | Use Case |
-|-----------|-------------|-----------------------|----------|
-| **JSON**  | 100%        | **1.0x**              | Machine-to-machine |
-| **NaN0**  | 101.1%      | **5.3x - 5.5x**       | Data-driven Logic, Configs |
-| **MD+N0** | 110.4%      | **5.0x - 5.1x**       | Articles with Metadata |
-| **YAML**  | 105.7%      | **55.0x - 60.0x**     | Legacy Configs |
+| Формат    | Розм. (відн.) | Швидк. (проти JSON) | Сфера застосування |
+|-----------|---------------|-----------------------|--------------------|
+| **JSON**  | 100%          | **1.0x**              | Машинний обмін |
+| **NaN0**  | 101.1%        | **2.1x**              | Логіка даних, конфіги |
+| **MD+N0** | 100.3%        | **1.8x**              | Статті з метаданими |
+| **YAML**  | 105.7%        | **65.0x - 66.0x**     | Системні налаштування |
 
-*MD+N0 uses NaN0 for frontmatter instead of YAML, resulting in a **12x speedup** for Markdown parsing.*
+*Використання NaN0 замість YAML для метаданих у Markdown дає **36-кратне пришвидшення** розбору. У майбутньому можливе ще значніше пришвидшення (до рівня нативного JSON) через впровадження опціонального WASM-двигуна на Rust чи C++.*
 
 ---
 
