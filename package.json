@@ -1,6 +1,6 @@
 {
 	"name": "@nan0web/types",
-	"version": "1.5.0",
+	"version": "1.6.0",
 	"description": "Universal system for managing data structures and types in JavaScript applications based on the nan0 philosophy where zero represents the universe.",
 	"type": "module",
 	"main": "src/index.js",
@@ -26,7 +26,8 @@
 		"!src/**/*.test.js",
 		"!src/README.md.js",
 		"!src/NaN0.examples.js",
-		"!types/NaN0.examples.d.ts"
+		"!types/NaN0.examples.d.ts",
+		"!src/ui/vscode/**"
 	],
 	"scripts": {
 		"build": "tsc",

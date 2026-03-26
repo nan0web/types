@@ -71,6 +71,17 @@ function testRender() {
 	 * and basic tree structures like indented texts. It is especially useful in monorepos
 	 * where lightweight, proven, reusable utilities are essential.
 	 *
+	 * ## Table of Contents
+	 * - [Core Concepts](#core-concepts)
+	 * - [Usage: Basic Types](#usage-basic-types)
+	 * - [Conversions & Utilities](#conversions--utilities)
+	 * - [Symmetrical i18n Validation](#symmetrical-i18n-validation)
+	 * - [Parser & Tree Structures](#parser--tree-structures)
+	 * - [NaN0 Format](#nan0-format)
+	 * - [VS Code Extension](#vs-code-extension)
+	 * - [Playground](#playground)
+	 * - [Java•Script](#javascript)
+	 *
 	 * ## Installation
 	 */
 	it('How to install with npm?', () => {
@@ -886,6 +897,31 @@ function testRender() {
 		assert.deepStrictEqual(console.output()[0][1], [{ id: 'person', text: 'Sample NaN0' }])
 		assert.equal(console.output()[1][1], example)
 		assert.deepStrictEqual(NaN0.parse(stringified), parsed)
+	})
+
+	/**
+	 * @docs
+	 * ## VS Code Extension
+	 *
+	 * This package includes a built-in VS Code extension (`nan0-vscode`) that provides **syntax highlighting** and **formatting** for the NaN0 format.
+	 */
+	it('How to compile and use the VS Code extension?', () => {
+		/**
+		 * ```bash
+		 * # 1. Go to the extension directory:
+		 * cd src/ui/vscode
+		 *
+		 * # 2. Build the extension bundle (requires esbuild):
+		 * npm run build
+		 *
+		 * # 3. Package it into a .vsix file:
+		 * npm run package
+		 *
+		 * # 4. Install the generated .vsix file in VS Code manually.
+		 * ```
+		 *
+		 * The extension strictly enforces the defined `NaN0.TAB` (2 spaces) formatting standard upon saving/formatting a document, preventing Git conflicts across different editor configurations.
+		 */
 	})
 
 	/**
