@@ -15,6 +15,7 @@ import NaN0 from './domain/NaN0.js';
 import resolveAliases from './utils/resolveAliases.js';
 import resolveDefaults from './utils/resolveDefaults.js';
 import resolveValidation from './utils/resolveValidation.js';
+import { Model } from './Model.js';
 import ModelError from './domain/ModelError.js';
 import { createT } from './utils/TFunction.js';
-export { FilterString, FullObject, UndefinedObject, ObjectWithAlias, ContainerObject, NonEmptyObject, clone, merge, Parser, Node, NaN0, resolveAliases, resolveDefaults, resolveValidation, ModelError, createT, createT as TFunction };
+export { FilterString, FullObject, UndefinedObject, ObjectWithAlias, ContainerObject, NonEmptyObject, clone, merge, Parser, Node, NaN0, resolveAliases, resolveDefaults, resolveValidation, Model, ModelError, createT, createT as TFunction };

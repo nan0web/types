@@ -106,21 +106,9 @@ export default class Parser {
 			while (contentStart < lineEnd && str[contentStart] <= ' ') contentStart++
 			if (contentStart === lineEnd) continue // Empty line
 
-			// Calculate indent without slice
-			let indent = 0
-			let indentPos = lineStart
-			while (indentPos + tabLen <= lineEnd) {
-				let match = true
-				for (let j = 0; j < tabLen; j++) {
-					if (str[indentPos + j] !== this.tab[j]) {
-						match = false
-						break
-					}
-				}
-				if (!match) break
-				indent++
-				indentPos += tabLen
-			}
+			// Calculate indent using overridable readIndent
+			let indent = this.readIndent(str.slice(lineStart, lineEnd))
+			let indentPos = lineStart + (indent * tabLen)
 
 			// Skip patterns
 			if (skip.length > 0) {

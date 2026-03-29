@@ -11,6 +11,7 @@ import Parser, { Node } from './domain/Parser/index.js'
 import resolveAliases from './utils/resolveAliases.js'
 import resolveDefaults from './utils/resolveDefaults.js'
 import resolveValidation from './utils/resolveValidation.js'
+import { Model } from './Model.js'
 import ModelError from './domain/ModelError.js'
 import { createT } from './utils/TFunction.js'
 
@@ -33,6 +34,7 @@ export {
 	resolveAliases,
 	resolveDefaults,
 	resolveValidation,
+	Model,
 	ModelError,
 	createT,
 	createT as TFunction,
