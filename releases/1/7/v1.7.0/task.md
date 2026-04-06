@@ -8,7 +8,8 @@
 
 ## Acceptance Criteria
 - [x] `Model` class correctly resolve defaults, aliases, and validation.
-- [x] `Model` class provides access to options via `db` and `_`.
+- [x] `Model` class provides access to options via `options` (autocomplete) and `_` (universal).
+- [x] `Model` class allows `db` property in data by removing `get db()` getter.
 - [x] `Parser` stable indentation via `readIndent`.
 - [x] TypeScript types for `Model` correctly exported.
 - [x] All 280+ tests pass (`npm run test:all`).

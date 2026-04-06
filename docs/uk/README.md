@@ -451,8 +451,14 @@ console.info(t('I have {apples}', { apples: 5 })) // ← "У мене є 5 яб�
 ```js
 import { resolveValidation, ModelError } from '@nan0web/types'
 class User {
-  static name = { validate: (v) => v.length > 2 || 'Name too short' }
-  static age = { validate: (v) => v >= 18 || 'Must be an adult' }
+	static name = {
+		errorNameTooShort: 'Name too short'
+		validate: (v) => v.length > 2 || User.name.errorNameTooShort,
+	}
+	static age = {
+		errorAdultOnly: 'Must be an adult',
+		validate: (v) => v >= 18 || User.age.errorAdultOnly,
+	}
 }
 try {
   resolveValidation(User, { name: 'Bo', age: 17 })

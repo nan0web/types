@@ -3,6 +3,13 @@ import resolveAliases from './utils/resolveAliases.js'
 import resolveValidation from './utils/resolveValidation.js'
 
 /**
+ * @typedef {Object} ModelOptions
+ * @property {import('@nan0web/db').default} [db] Database instance or access provider
+ * @property {Record<string, any>} [plugins] Optional plugins/extensions
+ * @property {import('./utils/TFunction.js').TFunction} [t] Translation function
+ */
+
+/**
  * Domain Data Model
  * Implements Model-as-Schema (Project-as-Data)
  *
@@ -13,25 +20,21 @@ import resolveValidation from './utils/resolveValidation.js'
  * const model = new Model({ description: 'My App', tags: ['ui'] })
  */
 export class Model {
-	#options = {}
+	#options = /** @type {ModelOptions} */ ({})
 	/**
 	 * @param {object} data Data from YAML or Markdown frontmatter
-	 * @param {object} [options] Extended options (db, etc.)
+	 * @param {ModelOptions} [options] Extended options (db, etc.)
 	 */
 	constructor(data = {}, options = {}) {
 		const Model = this.constructor
-		Object.assign(this, resolveDefaults(Model, resolveAliases(Model, data)))
+		const input = typeof data === 'string' ? { UI: data } : data
+		Object.assign(this, resolveDefaults(Model, resolveAliases(Model, input)))
 		this.#options = options
 	}
 
-	/** @returns {any} */
-	get db() {
-		return this.#options.db
-	}
-
-	/** 
+	/**
 	 * Environment options dependencies
-	 * @returns {object}
+	 * @returns {ModelOptions}
 	 */
 	get _() {
 		return this.#options
@@ -44,5 +47,16 @@ export class Model {
 	 */
 	validate() {
 		return resolveValidation(this.constructor, this)
+	}
+
+	/**
+	 * Update instance data with alias resolution support.
+	 * @param {object} data
+	 * @returns {this}
+	 */
+	setData(data) {
+		const Model = this.constructor
+		Object.assign(this, resolveAliases(Model, data))
+		return this
 	}
 }

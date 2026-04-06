@@ -16,22 +16,19 @@
  * This replaces the need to copy/paste alias resolution into every `static from()`.
  */
 
-/**
- * Resolve aliased keys in input data based on static metadata of the class.
- *
- * @param {Function} Class - The class constructor with static metadata fields.
- * @param {object} input - Raw input data (e.g. from YAML config or API).
- * @returns {object} - Shallow copy of input with aliases resolved.
- */
 export default function resolveAliases(Class, input) {
 	const data = { ...input }
 
 	for (const [key, meta] of Object.entries(Class)) {
 		if (meta && typeof meta === 'object' && meta.alias) {
-			const alias = meta.alias
-			if (alias in data && !(key in data)) {
-				data[key] = data[alias]
-				delete data[alias]
+			const aliases = Array.isArray(meta.alias) ? meta.alias : [meta.alias]
+			for (const alias of aliases) {
+				if (alias in data && !(key in data)) {
+					data[key] = data[alias]
+					delete data[alias]
+					// Found a valid alias, move to the next key
+					break
+				}
 			}
 		}
 	}

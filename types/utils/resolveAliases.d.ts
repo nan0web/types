@@ -15,11 +15,4 @@
  *
  * This replaces the need to copy/paste alias resolution into every `static from()`.
  */
-/**
- * Resolve aliased keys in input data based on static metadata of the class.
- *
- * @param {Function} Class - The class constructor with static metadata fields.
- * @param {object} input - Raw input data (e.g. from YAML config or API).
- * @returns {object} - Shallow copy of input with aliases resolved.
- */
-export default function resolveAliases(Class: Function, input: object): object;
+export default function resolveAliases(Class: any, input: any): any;

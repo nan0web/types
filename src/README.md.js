@@ -28,6 +28,7 @@ import {
 	resolveAliases,
 	resolveDefaults,
 	resolveValidation,
+	Model,
 	ModelError,
 	createT,
 } from './index.js'
@@ -127,6 +128,30 @@ function testRender() {
 	 * - 🧠 Built for cognitive clarity: each function has a clear purpose
 	 * - 🌱 No external dependencies
 	 *
+	 * ### `Model` (Data-Driven Domain Model)
+	 *
+	 * The base class for all domain objects in the NaN0Web ecosystem. It automatically
+	 * applies default values, resolves aliases, and provides built-in validation
+	 * based on static class metadata.
+	 */
+	it('How to use Model for domain logic?', () => {
+		//import { Model } from "@nan0web/types"
+		class User extends Model {
+			static name = { default: 'Anonymous' }
+			static age = {
+				errorTooYoung: 'Too young',
+				validate: (v) => v >= 18 || errorTooYoung,
+			}
+		}
+		const user = new User({ age: 25 })
+		console.info(user.name) // ← "Anonymous"
+		assert.equal(user.name, 'Anonymous')
+		assert.equal(user.age, 25)
+		assert.equal(console.output()[0][1], 'Anonymous')
+	})
+
+	/**
+	 * @docs
 	 * ## Usage: Basic Types
 	 *
 	 * ### `match(test, options)`
@@ -308,10 +333,12 @@ function testRender() {
 		//import { resolveValidation, ModelError } from "@nan0web/types"
 		class User {
 			static name = {
-				validate: (v) => v.length > 2 || 'Name too short',
+				errorNameTooShort: 'Name too short',
+				validate: (v) => v.length > 2 || User.name.errorNameTooShort,
 			}
 			static age = {
-				validate: (v) => v >= 18 || 'Must be an adult',
+				errorAdultOnly: 'Must be an adult',
+				validate: (v) => v >= 18 || User.age.errorAdultOnly,
 			}
 		}
 
@@ -649,8 +676,8 @@ function testRender() {
 	 */
 	it('How to check if function is constructible?', () => {
 		//import { isConstructible } from "@nan0web/types"
-		console.info(isConstructible(class X {})) // ← true
-		console.info(isConstructible(() => {})) // ← false
+		console.info(isConstructible(class X { })) // ← true
+		console.info(isConstructible(() => { })) // ← false
 		assert.equal(console.output()[0][1], true)
 		assert.equal(console.output()[1][1], false)
 	})
@@ -991,3 +1018,7 @@ describe('Rendering README.md', async () => {
 		assert.ok(str.includes('## License'))
 	})
 })
+
+
+
+

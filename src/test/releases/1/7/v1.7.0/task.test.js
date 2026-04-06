@@ -14,11 +14,11 @@ describe('Model', () => {
         assert.strictEqual(user.age, 30)
     })
 
-    it('should provide access to options via db and _', () => {
+    it('should provide access to options via _', () => {
         const db = { find: () => {} }
         const model = new Model({}, { db, other: 'opt' })
         
-        assert.strictEqual(model.db, db)
+        assert.strictEqual(model._.db, db)
         assert.strictEqual(model._.other, 'opt')
     })
 

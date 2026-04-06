@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.1] - 2026-04-06
+
+### Refined
+- **Model Architecture**: Decoupled `db` from built-in getters to prevent shadowing when used as a data property.
+- **Developer Ergonomics**: Added `setData()` method for incremental updates with alias resolution.
+- **TFunction Introspection**: Integrated `TFunction` type into `ModelOptions` for seamless i18n support in domain models.
+- **String Shorthand**: `new Model('text')` maps to `{ UI: 'text' }` for CLI/Chat inputs.
+- **Array Aliases**: `resolveAliases` now supports `alias: ['name', 'n']` for multi-alias fields.
+- **Build Hygiene**: `build` script cleans `types/` before `tsc` to prevent stale `.d.ts`.
+- **Full details**: [releases/1/7/v1.7.1/task.md](releases/1/7/v1.7.1/task.md)
+
 ## [1.7.0] - 2026-03-29
 
 ### Added

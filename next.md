@@ -1,5 +1,15 @@
 # @nan0web/types — Next Steps
 
+## v1.7.1 — Model Refinement & Types Cleanup ✅
+
+- [x] **Model Architecture**: Decoupled `db` from built-in getters to prevent shadowing.
+- [x] **ModelOptions**: Formalized `ModelOptions` typedef with `db`, `plugins`, `t`.
+- [x] **String shorthand**: `new Model('text')` → `{ UI: 'text' }`.
+- [x] **setData()**: Incremental updates with alias resolution.
+- [x] **resolveAliases**: Array alias support (`alias: ['name', 'n']`).
+- [x] **Build hygiene**: `rm -rf types && tsc` prevents stale `.d.ts`.
+- [x] **Types**: Regenerated, stale files cleaned.
+
 ## v1.5.0 — Performance Optimization ✅
 
 - [x] **Single-pass Scanner**: Реалізувати потокове читання символів у `Parser.js`.
