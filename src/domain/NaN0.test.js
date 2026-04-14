@@ -191,7 +191,7 @@ describe('NaN0 parse and stringify', () => {
 
 		it('should throw on invalid array item', () => {
 			const input = `test:\n  items:\n    - one\n    invalid`
-			assert.throws(() => NaN0.parse(input), /Invalid array item/)
+			assert.throws(() => NaN0.parse(input), /Invalid array item|no colon/)
 		})
 
 		it('should parse object inside array itens', () => {

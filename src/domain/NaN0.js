@@ -386,10 +386,14 @@ export default class NaN0 {
 						value = { [name]: childrenVal }
 					} else {
 						const childrenVal = this.parseContainer(itemNode.children, level + 1, subContext)
-						value = { [name]: this.parseValue(valPart, name, context) }
-						if (childrenVal && typeof childrenVal === 'object' && !Array.isArray(childrenVal)) {
+						let directVal;
+						if (valPart === this.EMPTY_ARRAY) directVal = [];
+						else if (valPart === this.EMPTY_OBJECT) directVal = {};
+						else directVal = this.parseValue(valPart, name, context);
+						value = { [name]: directVal }
+						if (childrenVal && typeof childrenVal === 'object' && !Array.isArray(childrenVal) && Object.keys(childrenVal).length > 0) {
 							Object.assign(value, childrenVal)
-						} else {
+						} else if (childrenVal && Object.keys(childrenVal).length > 0) {
 							value[name] = childrenVal
 						}
 					}
@@ -474,8 +478,9 @@ export default class NaN0 {
 			if (item.length === 0) {
 				content = `- ${this.EMPTY_ARRAY}`
 			} else {
-				// not supported currently
-				throw new Error('NaN0 does not support nested non-empty arrays in array items')
+				content = `-`
+				needsChildren = true
+				nodeType = 'array'
 			}
 		} else if (item instanceof Date) {
 			content = `- ${this.formatValue(item)}`
@@ -512,7 +517,14 @@ export default class NaN0 {
 					// but here we have a special case where we want to append 'rest' as well.
 					// Actually, simpler: we just set needsChildren = true and let the loop below handle it.
 				} else {
-					const subValStr = this.formatValue(subValue)
+					let subValStr
+					if (Array.isArray(subValue) && subValue.length === 0) {
+						subValStr = this.EMPTY_ARRAY
+					} else if (subValue && typeof subValue === 'object' && Object.keys(subValue).length === 0) {
+						subValStr = this.EMPTY_OBJECT
+					} else {
+						subValStr = this.formatValue(subValue)
+					}
 					content = `- ${subKey}: ${subValStr}`
 					needsChildren = true
 					nodeType = 'complex'
@@ -534,6 +546,8 @@ export default class NaN0 {
 				lines.forEach((line) =>
 					itemNode.children.push(new Node({ content: line, indent: level + 1 })),
 				)
+			} else if (nodeType === 'array') {
+				item.forEach((it) => this.addArrayItemToNode(itemNode, it, level + 1))
 			} else if (nodeType === 'complex') {
 				const entries = Object.entries(item)
 				const [firstKey, firstValue] = entries[0]
@@ -613,7 +627,7 @@ export default class NaN0 {
 			
 			// Initial root determination
 			if (!parentFrame) {
-				const isArrayStart = content === this.EMPTY_ARRAY || content.startsWith('- ')
+				const isArrayStart = content === this.EMPTY_ARRAY || content.startsWith('- ') || content === '-'
 				result = content === this.EMPTY_ARRAY ? [] : (isArrayStart ? [] : {})
 				parentFrame = { val: result, indent: -1, type: isArrayStart ? 'array' : 'object', Body: context.Body }
 				stack.push(parentFrame)
@@ -637,7 +651,7 @@ export default class NaN0 {
 			}
 
 			// 3. Dynamic transition from inferred object to array if child starts with '- '
-			if (parentFrame.type === 'object' && content.startsWith('- ') && parentFrame.key) {
+			if (parentFrame.type === 'object' && (content.startsWith('- ') || content === '-') && parentFrame.key !== undefined) {
 				const newVal = []
 				const grandFrame = stack[stack.length - 2]
 				if (grandFrame) grandFrame.val[parentFrame.key] = newVal
@@ -649,52 +663,76 @@ export default class NaN0 {
 
 			// 4. Parse Content
 			if (parentFrame.type === 'array') {
-				if (!content.startsWith('- ')) throw new Error(`Invalid array item at line ${lineNum}`)
-				const itemContent = content.slice(2).trim()
-				const itemIndex = parentFrame.val.length
-				const commentId = `[${itemIndex}]`
-				
-				if (itemContent === this.EMPTY_ARRAY) {
-					parentFrame.val.push([])
-					attachComment(commentId)
-				} else if (itemContent === this.EMPTY_OBJECT) {
-					parentFrame.val.push({})
-					attachComment(commentId)
-				} else if (itemContent.includes(':')) {
-					// Array item is an object starting with a key
-					const colonIdx = itemContent.indexOf(':')
-					const key = itemContent.substring(0, colonIdx).trim()
-					const valPart = itemContent.substring(colonIdx + 1).trim()
-					const obj = {}
-					parentFrame.val.push(obj)
-					attachComment(key)
-					
-					// Infer sub-Body
-					let subBody = parentFrame.Body
-					if (parentFrame.Body?.[key]) {
-						const bp = parentFrame.Body[key]
-						subBody = bp.itemType || bp.type
+				if (!content.startsWith('- ') && content !== '-') {
+					// It's a property following an array item, so it belongs to the parent object frame.
+					// Pop the array frame and re-evaluate as object property.
+					stack.pop()
+					parentFrame = stack[stack.length - 1]
+					if (!parentFrame || parentFrame.type !== 'object') {
+						throw new Error(`Invalid array item at line ${lineNum}: ${content}`)
 					}
-
-					stack.push({ val: obj, indent, type: 'object', key, Body: parentFrame.Body })
-
-					if (valPart !== '') {
-						obj[key] = this.parseValue(valPart, key, { Body: subBody })
-					} else {
-						const subObj = {}
-						obj[key] = subObj
-						stack.push({ val: subObj, indent, type: 'object', key, Body: subBody })
-					}
-				} else if (itemContent === this.MULTILINE_START) {
-					const idx = parentFrame.val.length
-					parentFrame.val.push('')
-					stack.push({ val: parentFrame.val, indent, type: 'array', key: idx, multiline: true, Body: parentFrame.Body })
-					attachComment(commentId)
 				} else {
-					parentFrame.val.push(this.parseValue(itemContent, undefined, { Body: parentFrame.Body }))
-					attachComment(commentId)
+					const itemContent = content === '-' ? '' : content.slice(2).trim()
+					const itemIndex = parentFrame.val.length
+					const commentId = `[${itemIndex}]`
+				
+					if (itemContent === this.EMPTY_ARRAY) {
+						parentFrame.val.push([])
+						attachComment(commentId)
+					} else if (itemContent === this.EMPTY_OBJECT) {
+						parentFrame.val.push({})
+						attachComment(commentId)
+					} else if (itemContent.includes(':')) {
+						// Array item is an object starting with a key
+						const colonIdx = itemContent.indexOf(':')
+						const key = itemContent.substring(0, colonIdx).trim()
+						const valPart = itemContent.substring(colonIdx + 1).trim()
+						const obj = {}
+						parentFrame.val.push(obj)
+						attachComment(key)
+						
+						// Infer sub-Body
+						let subBody = parentFrame.Body
+						if (parentFrame.Body?.[key]) {
+							const bp = parentFrame.Body[key]
+							subBody = bp.itemType || bp.type
+						}
+
+						stack.push({ val: obj, indent, type: 'object', key, Body: parentFrame.Body })
+
+						if (valPart === this.MULTILINE_START) {
+							obj[key] = ''
+							stack.push({ val: obj, indent, type: 'object', key, multiline: true, Body: subBody })
+						} else if (valPart === this.EMPTY_ARRAY) {
+							obj[key] = []
+						} else if (valPart === this.EMPTY_OBJECT) {
+							obj[key] = {}
+						} else if (valPart !== '') {
+							obj[key] = this.parseValue(valPart, key, { Body: subBody })
+						} else {
+							const subObj = {}
+							obj[key] = subObj
+							stack.push({ val: subObj, indent, type: 'object', key, Body: subBody })
+						}
+					} else if (itemContent === this.MULTILINE_START) {
+						const idx = parentFrame.val.length
+						parentFrame.val.push('')
+						stack.push({ val: parentFrame.val, indent, type: 'array', key: idx, multiline: true, Body: parentFrame.Body })
+						attachComment(commentId)
+					} else if (itemContent === '') {
+						const obj = {}
+						const idx = parentFrame.val.length
+						parentFrame.val.push(obj)
+						stack.push({ val: obj, indent, type: 'object', key: idx, Body: parentFrame.Body })
+						attachComment(commentId)
+					} else {
+						parentFrame.val.push(this.parseValue(itemContent, undefined, { Body: parentFrame.Body }))
+						attachComment(commentId)
+					}
 				}
-			} else {
+			}
+
+			if (parentFrame.type === 'object') {
 				// Object content
 				// Object content (transition check for explicit empty collections)
 				if (content === this.MULTILINE_START) {

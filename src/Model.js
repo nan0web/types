@@ -5,8 +5,8 @@ import resolveValidation from './utils/resolveValidation.js'
 /**
  * @typedef {Object} ModelOptions
  * @property {import('@nan0web/db').default} [db] Database instance or access provider
- * @property {Record<string, any>} [plugins] Optional plugins/extensions
- * @property {import('./utils/TFunction.js').TFunction} [t] Translation function
+ * @property {Record<string, any>} plugins Optional plugins/extensions
+ * @property {import('./utils/TFunction.js').TFunction} t Translation function
  */
 
 /**
@@ -20,16 +20,20 @@ import resolveValidation from './utils/resolveValidation.js'
  * const model = new Model({ description: 'My App', tags: ['ui'] })
  */
 export class Model {
-	#options = /** @type {ModelOptions} */ ({})
+	/** @type {ModelOptions} */
+	#options = {
+		t: (key) => key,
+		plugins: {}
+	}
 	/**
 	 * @param {object} data Data from YAML or Markdown frontmatter
-	 * @param {ModelOptions} [options] Extended options (db, etc.)
+	 * @param {Partial<ModelOptions>} [options] Extended options `db`, `t`, `plugins`.
 	 */
 	constructor(data = {}, options = {}) {
 		const Model = this.constructor
 		const input = typeof data === 'string' ? { UI: data } : data
 		Object.assign(this, resolveDefaults(Model, resolveAliases(Model, input)))
-		this.#options = options
+		Object.assign(this.#options, options)
 	}
 
 	/**

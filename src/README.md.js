@@ -140,14 +140,16 @@ function testRender() {
 			static name = { default: 'Anonymous' }
 			static age = {
 				errorTooYoung: 'Too young',
-				validate: (v) => v >= 18 || errorTooYoung,
+				validate: (v) => v >= 18 || User.age.errorTooYoung,
 			}
 		}
 		const user = new User({ age: 25 })
 		console.info(user.name) // ← "Anonymous"
+		console.info(user.age) // ← 25
 		assert.equal(user.name, 'Anonymous')
 		assert.equal(user.age, 25)
 		assert.equal(console.output()[0][1], 'Anonymous')
+		assert.equal(console.output()[1][1], 25)
 	})
 
 	/**

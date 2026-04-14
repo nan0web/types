@@ -1,46 +1,13 @@
-# @nan0web/types — Next Steps
+# 🏗️ Architecture Audit — Healing Report
 
-## v1.7.1 — Model Refinement & Types Cleanup ✅
+**Score: {passed}/{total} ({pct}%)**
 
-- [x] **Model Architecture**: Decoupled `db` from built-in getters to prevent shadowing.
-- [x] **ModelOptions**: Formalized `ModelOptions` typedef with `db`, `plugins`, `t`.
-- [x] **String shorthand**: `new Model('text')` → `{ UI: 'text' }`.
-- [x] **setData()**: Incremental updates with alias resolution.
-- [x] **resolveAliases**: Array alias support (`alias: ['name', 'n']`).
-- [x] **Build hygiene**: `rm -rf types && tsc` prevents stale `.d.ts`.
-- [x] **Types**: Regenerated, stale files cleaned.
+## Issues Found
+- [ ] [exports] src/index.js: `Default export found in {file} — only named exports allowed`
+- [ ] [exports] src/domain/index.js: `src/domain/ exists but src/domain/index.js is missing`
+- [ ] [exports] exports["./ui/vscode"]: `UI adapter dir {dir}/ exists but not declared in package.json exports`
+- [ ] [domain] /Users/i/src/nan.web/packages/types/src/README.md.js: `Model class outside src/domain/ in {file}`
 
-## v1.5.0 — Performance Optimization ✅
-
-- [x] **Single-pass Scanner**: Реалізувати потокове читання символів у `Parser.js`.
-- [x] **Zero-Allocation**: Усунути `split('\n')` та мінімізувати створення об'єктів `Node`.
-- [x] **RegExp Cache/Optimization**: Оптимізувати перевірку типів (`Number`, `Date`).
-
-## v1.4.1 — Schema, Modular Docs & ESM Fixes ✅ 
-
-- [x] **Benchmarking**: Порівняння швидкості з JSON/YAML/MD.
-- [x] **Schema-Aware Parsing**: Авто-типізація через `Body` модель.
-- [x] **ESM Compatibility**: Заміна `as any` (TS) на JSDoc-касти `(/** @type {any} */ (val))` у `.js` файлах.
-- [x] **Comment Order Fix**: Виправлено черговість коментарів.
-- [x] **Modular Documentation**: Спліт README на `docs/` розділи.
-- [x] **Regression**: Контракт релізу перенесено у `src/test/releases`.
-
-## v1.4.0 — Total Logic Isolation & i18n Contract ✅ 
-
-- [x] **TFunction**: Централізовано контракт перекладу в `@nan0web/types`.
-- [x] **Recursive Plurals**: Підтримка вкладених об'єктів перекладу.
-- [x] **Numeric Shorthand**: Число як автоматичний $count для змінних (apples: 5).
-- [x] **ModelError**: Структуровані помилки валідації з підтримкою TFunction.
-- [x] **resolveValidation**: Валідація за метаданими з викиданням ModelError.
-- [x] **Refactoring**: Розділення на `/domain` та `/utils`.
-- [x] **Test Migration**: Перехід на `describe > it` та 270/270 PASS.
-- [x] **Documentation**: Оновлено README.md.js та README.md (EN/UK).
-
----
-
-_Оновлено: 2026-03-25_
-
-# Бенчмарк `NaN0` vs `YAML` vs `JSON` vs `MD` ✅
-
-(Тут результати бенчмарку з v1.4.1)
-...
+## Recommended Subagents
+- `@[/inspect-anti-pattern]`
+- `@[/inspect-models]`

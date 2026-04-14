@@ -1,8 +1,8 @@
 /**
  * @typedef {Object} ModelOptions
  * @property {import('@nan0web/db').default} [db] Database instance or access provider
- * @property {Record<string, any>} [plugins] Optional plugins/extensions
- * @property {import('./utils/TFunction.js').TFunction} [t] Translation function
+ * @property {Record<string, any>} plugins Optional plugins/extensions
+ * @property {import('./utils/TFunction.js').TFunction} t Translation function
  */
 /**
  * Domain Data Model
@@ -17,9 +17,9 @@
 export class Model {
     /**
      * @param {object} data Data from YAML or Markdown frontmatter
-     * @param {ModelOptions} [options] Extended options (db, etc.)
+     * @param {Partial<ModelOptions>} [options] Extended options `db`, `t`, `plugins`.
      */
-    constructor(data?: object, options?: ModelOptions);
+    constructor(data?: object, options?: Partial<ModelOptions>);
     /**
      * Environment options dependencies
      * @returns {ModelOptions}
@@ -47,9 +47,9 @@ export type ModelOptions = {
     /**
      * Optional plugins/extensions
      */
-    plugins?: Record<string, any> | undefined;
+    plugins: Record<string, any>;
     /**
      * Translation function
      */
-    t?: import("./utils/TFunction.js").TFunction | undefined;
+    t: import("./utils/TFunction.js").TFunction;
 };
