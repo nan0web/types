@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.3] - 2026-04-26
+
+### Fixed
+- **Types**: Made the second argument (`arg1`) of `TFunction` optional to prevent TypeScript errors when calling `t('key')` without parameters.
+- **Parser**: Added line number (`lineNum`) and surrounding context to `invalid indent` parsing errors, improving the debuggability of the `NaN0` format.
+- **Model Architecture**: Integrated a default fallback for the `t` (translation) function in `ModelOptions` that dynamically replaces `{key}` tags with provided parameters when `i18n` is not fully initialized.
+- **Full details**: [releases/1/7/v1.7.3/task.md](releases/1/7/v1.7.3/task.md)
+
 ## [1.7.2] - 2026-04-14
 
 ### Fixed

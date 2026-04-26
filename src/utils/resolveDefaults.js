@@ -35,3 +35,5 @@ export default function resolveDefaults(Class, target) {
 	}
 	return target
 }
+
+

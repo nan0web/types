@@ -292,19 +292,19 @@ class B extends ContainerObject {
 		children.map((c) => this.add(c))
 	}
 /**
-	 * Adds element to the container.
-	 * @param {Partial<B>} element
-	 * @returns {B}
- */
+		 * Adds element to the container.
+		 * @param {Partial<B>} element
+		 * @returns {B}
+	 */
 	add(element) {
 		this.children.push(B.from(element))
 		this._updateLevel()
 		return this
 	}
 /**
-	 * @param {Partial<B> | string} input
-	 * @returns {B}
- */
+		 * @param {Partial<B> | string} input
+		 * @returns {B}
+	 */
 	static from(input) {
 		if (input instanceof B) return input
 		return new B(input)

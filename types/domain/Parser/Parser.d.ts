@@ -45,12 +45,23 @@ export default class Parser {
      */
     decode(text: string): Node;
     /**
-     * Advanced pointer-based scanner.
-     * Calls callback for each valid line with (content, indent, lineNum, start, end).
-     * @param {string} text
-     * @param {function(string, number, number, number, number): void} callback
+     * @callback ScanLinesCallback
+     * @param {string} content The parsed line content without indentation
+     * @param {number} indent Number of indent blocks
+     * @param {number} lineNum Current line number (1-indexed)
+     * @param {number} start Position of the first character of content
+     * @param {number} end Position of the end of the line
+     * @param {string} str The full original text
+     * @param {string[]} lines Array of lines parsed so far
+     * @returns {void}
      */
-    scanLines(text: string, callback: (arg0: string, arg1: number, arg2: number, arg3: number, arg4: number) => void): void;
+    /**
+     * Advanced pointer-based scanner.
+     * Calls callback for each valid line.
+     * @param {string} text
+     * @param {ScanLinesCallback} callback
+     */
+    scanLines(text: string, callback: (content: string, indent: number, lineNum: number, start: number, end: number, str: string, lines: string[]) => void): void;
     /**
      * Stringify the generic tree.
      * @param {Node} node

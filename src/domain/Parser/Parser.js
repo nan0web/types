@@ -60,12 +60,15 @@ export default class Parser {
 	decode(text) {
 		const root = new Node()
 		const stack = [{ node: root, indent: -1 }]
-		
-		this.scanLines(text, (line, indent) => {
+
+		this.scanLines(text, (line, indent, lineNum, start, end, str, lines) => {
 			while (stack.length && indent <= stack[stack.length - 1].indent) {
 				stack.pop()
 			}
-			if (stack.length === 0) throw new Error(`Parsing error: invalid indent`)
+			if (stack.length === 0) {
+				const prev = lines.slice(-3).join(this.eol)
+				throw new Error(`Parsing error: invalid indent ${indent} #${lineNum}: ${line}\n${prev}`)
+			}
 			const parent = stack[stack.length - 1].node
 			const node = new Node({ content: line, indent })
 			parent.children.push(node)
@@ -76,10 +79,22 @@ export default class Parser {
 	}
 
 	/**
+	 * @callback ScanLinesCallback
+	 * @param {string} content The parsed line content without indentation
+	 * @param {number} indent Number of indent blocks
+	 * @param {number} lineNum Current line number (1-indexed)
+	 * @param {number} start Position of the first character of content
+	 * @param {number} end Position of the end of the line
+	 * @param {string} str The full original text
+	 * @param {string[]} lines Array of lines parsed so far
+	 * @returns {void}
+	 */
+
+	/**
 	 * Advanced pointer-based scanner.
-	 * Calls callback for each valid line with (content, indent, lineNum, start, end).
+	 * Calls callback for each valid line.
 	 * @param {string} text
-	 * @param {function(string, number, number, number, number): void} callback
+	 * @param {ScanLinesCallback} callback
 	 */
 	scanLines(text, callback) {
 		const str = String(text)
@@ -88,14 +103,16 @@ export default class Parser {
 		const eolLen = eol.length
 		const tabLen = this.tab.length
 		const skip = this.skip
-		
+		const lines = []
+
 		let pos = 0
 		let lineNum = 0
 
 		while (pos < len) {
 			let end = str.indexOf(eol, pos)
 			if (end === -1) end = len
-			
+			lines.push(str.slice(pos, end))
+
 			const lineNumCurrent = ++lineNum
 			const lineStart = pos
 			const lineEnd = end
@@ -108,17 +125,17 @@ export default class Parser {
 
 			// Calculate indent using overridable readIndent
 			let indent = this.readIndent(str.slice(lineStart, lineEnd))
-			let indentPos = lineStart + (indent * tabLen)
+			let indentPos = lineStart + indent * tabLen
 
 			// Skip patterns
 			if (skip.length > 0) {
 				const raw = str.slice(lineStart, lineEnd)
-				if (skip.some(s => typeof s === 'function' ? s(raw) : s === raw)) continue
+				if (skip.some((s) => (typeof s === 'function' ? s(raw) : s === raw))) continue
 			}
 
 			// Extract only when necessary (or use pointer-based logic in callback)
 			const content = str.slice(indentPos, lineEnd).trimEnd()
-			callback(content, indent, lineNumCurrent, indentPos, lineEnd)
+			callback(content, indent, lineNumCurrent, indentPos, lineEnd, str, lines)
 		}
 	}
 
