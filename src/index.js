@@ -16,11 +16,11 @@ import merge from './utils/merge.js'
 import resolveAliases from './utils/resolveAliases.js'
 import resolveDefaults from './utils/resolveDefaults.js'
 import resolveValidation from './utils/resolveValidation.js'
-import { Model } from './Model.js'
+import { Model } from './domain/Model.js'
 import { createT } from './utils/TFunction.js'
 
 /** @typedef {import('./utils/TFunction.js').TFunction} TFunction */
-/** @typedef {import('./Model').ModelOptions} ModelOptions */
+/** @typedef {import('./domain/Model.js').ModelOptions} ModelOptions */
 
 export * from './utils/core.js'
 

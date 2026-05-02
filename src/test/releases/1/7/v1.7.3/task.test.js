@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'assert/strict'
-import { Model } from '../../../../../Model.js'
+import { Model } from '../../../../../domain/Model.js'
 
 test('v1.7.3 - Model default t function replaces variables', () => {
 	const model = new Model()

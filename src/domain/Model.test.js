@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
-import assert from 'node:assert'
-import { Model } from '../../../../../domain/Model.js'
+import assert from 'assert/strict'
+import { Model } from './Model.js'
 
 describe('Model', () => {
 	it('should initialize with data', () => {
@@ -12,6 +12,9 @@ describe('Model', () => {
 		const user = new User({ user_age: 30 })
 		assert.strictEqual(user.name, 'Anonymous')
 		assert.strictEqual(user.age, 30)
+		assert.strictEqual(user._.db, null)
+		assert.ok('function' === typeof user._.t)
+		assert.deepStrictEqual(user._.plugins, {})
 	})
 
 	it('should provide access to options via _', () => {
@@ -25,7 +28,8 @@ describe('Model', () => {
 	it('should validate against schema', () => {
 		class Product extends Model {
 			static price = {
-				validate: (v) => v > 0 || 'Price must be positive',
+				errorPositive: 'Price must be positive',
+				validate: (v) => v > 0 || Product.price.errorPositive,
 			}
 		}
 

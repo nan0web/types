@@ -1,12 +1,12 @@
-import resolveDefaults from './utils/resolveDefaults.js'
-import resolveAliases from './utils/resolveAliases.js'
-import resolveValidation from './utils/resolveValidation.js'
+import resolveDefaults from '../utils/resolveDefaults.js'
+import resolveAliases from '../utils/resolveAliases.js'
+import resolveValidation from '../utils/resolveValidation.js'
 
 /**
  * @typedef {Object} ModelOptions
- * @property {import('@nan0web/db').default} [db] Database instance or access provider
- * @property {Record<string, any>} [plugins] Optional plugins/extensions
- * @property {import('./utils/TFunction.js').TFunction} t Translation function
+ * @property {import('@nan0web/db').default | null} db Database instance or access provider
+ * @property {Record<string, any>} plugins Optional plugins/extensions
+ * @property {import('../utils/TFunction.js').TFunction} t Translation function
  */
 
 /**
@@ -22,8 +22,9 @@ import resolveValidation from './utils/resolveValidation.js'
 export class Model {
 	/** @type {ModelOptions} */
 	#options = {
-		t: (k, p = {}) => k.replace(/{(\w+)}/g, (_, x) => p[x] !== undefined ? p[x] : `{${x}}`),
-		plugins: {}
+		t: (k, p = {}) => k.replace(/{(\w+)}/g, (_, x) => (p[x] !== undefined ? p[x] : `{${x}}`)),
+		db: null,
+		plugins: {},
 	}
 	/**
 	 * @param {object | string} [data] Model's data (nan0, yaml, md-frontmatter, etc.)
@@ -47,7 +48,7 @@ export class Model {
 	/**
 	 * Validate instance against static schema metadata.
 	 * @returns {boolean} True if validation passes
-	 * @throws {import('./domain/ModelError.js').ModelError}
+	 * @throws {import('./ModelError.js').ModelError}
 	 */
 	validate() {
 		return resolveValidation(this.constructor, this)

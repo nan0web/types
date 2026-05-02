@@ -1,7 +1,7 @@
 export * from "./utils/core.js";
 export type TFunction = import("./utils/TFunction.js").TFunction;
 export default NaN0;
-export type ModelOptions = import("./Model").ModelOptions;
+export type ModelOptions = import("./domain/Model.js").ModelOptions;
 import { FilterString } from './domain/index.js';
 import { FullObject } from './domain/index.js';
 import { UndefinedObject } from './domain/index.js';
@@ -16,7 +16,7 @@ import { NaN0 } from './domain/index.js';
 import resolveAliases from './utils/resolveAliases.js';
 import resolveDefaults from './utils/resolveDefaults.js';
 import resolveValidation from './utils/resolveValidation.js';
-import { Model } from './Model.js';
+import { Model } from './domain/Model.js';
 import { ModelError } from './domain/index.js';
 import { createT } from './utils/TFunction.js';
 export { FilterString, FullObject, UndefinedObject, ObjectWithAlias, ContainerObject, NonEmptyObject, clone, merge, Parser, Node, NaN0, resolveAliases, resolveDefaults, resolveValidation, Model, ModelError, createT, createT as TFunction };

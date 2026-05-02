@@ -510,7 +510,11 @@ export default class NaN0 {
 						: typeof subValue === 'string' && subValue.includes(this.NEW_LINE)
 
 				if (isSubComplex) {
-					content = `- ${subKey}:`
+					if (typeof subValue === 'string' && subValue.includes(this.NEW_LINE)) {
+						content = `- ${subKey}: ${this.MULTILINE_START}`
+					} else {
+						content = `- ${subKey}:`
+					}
 					needsChildren = true
 					nodeType = 'complex'
 					// Note: the subValue itself will be handled by addValueToNode inside stringify
@@ -681,6 +685,9 @@ export default class NaN0 {
 						attachComment(commentId)
 					} else if (itemContent === this.EMPTY_OBJECT) {
 						parentFrame.val.push({})
+						attachComment(commentId)
+					} else if (itemContent.length >= 2 && itemContent[0] === '"' && itemContent[itemContent.length - 1] === '"') {
+						parentFrame.val.push(this.parseValue(itemContent, undefined, { Body: parentFrame.Body }))
 						attachComment(commentId)
 					} else if (itemContent.includes(':')) {
 						// Array item is an object starting with a key

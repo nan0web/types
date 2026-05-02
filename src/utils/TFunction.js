@@ -1,5 +1,9 @@
 /**
- * @typedef {function(string, Record<string, any>=): string} TFunction
+ * @typedef {(message: string, vars?: Record<string, any>) => string} TFunction
+ * @description Translation function. Takes a message key and optional variables for substitution.
+ * @param {string} message - The message key or template (e.g. "Hello {name}").
+ * @param {Record<string, any>} [vars] - Object with variables to substitute into the template.
+ * @returns {string} Localized string.
  */
 
 /**
@@ -10,9 +14,11 @@
  * @param {string} [locale='en'] - The locale used for plural rules.
  * @returns {TFunction} Translation function.
  *
- * Example:
- *   const t = createT({ "Hello {name}": "{name}, вітаю!" }, "uk-UA")
- *   t("Hello {name}", { name: "Іван" }) // → "Іван, вітаю!"
+ * @example
+ * ```js
+ * const t = createT({ "Hello {name}": "{name}, вітаю!" }, "uk-UA")
+ * t("Hello {name}", { name: "Іван" }) // → "Іван, вітаю!"
+ * ```
  */
 export function createT(vocab = {}, locale = 'en') {
 	const map =

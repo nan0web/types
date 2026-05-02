@@ -1,8 +1,8 @@
 /**
  * @typedef {Object} ModelOptions
- * @property {import('@nan0web/db').default} [db] Database instance or access provider
- * @property {Record<string, any>} [plugins] Optional plugins/extensions
- * @property {import('./utils/TFunction.js').TFunction} t Translation function
+ * @property {import('@nan0web/db').default | null} db Database instance or access provider
+ * @property {Record<string, any>} plugins Optional plugins/extensions
+ * @property {import('../utils/TFunction.js').TFunction} t Translation function
  */
 /**
  * Domain Data Model
@@ -28,7 +28,7 @@ export class Model {
     /**
      * Validate instance against static schema metadata.
      * @returns {boolean} True if validation passes
-     * @throws {import('./domain/ModelError.js').ModelError}
+     * @throws {import('./ModelError.js').ModelError}
      */
     validate(): boolean;
     /**
@@ -43,13 +43,13 @@ export type ModelOptions = {
     /**
      * Database instance or access provider
      */
-    db?: import("@nan0web/db").default | undefined;
+    db: import("@nan0web/db").default | null;
     /**
      * Optional plugins/extensions
      */
-    plugins?: Record<string, any> | undefined;
+    plugins: Record<string, any>;
     /**
      * Translation function
      */
-    t: import("./utils/TFunction.js").TFunction;
+    t: import("../utils/TFunction.js").TFunction;
 };
